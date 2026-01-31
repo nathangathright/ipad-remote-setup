@@ -2,17 +2,7 @@
 
 Automated setup script for remote coding from an iPad using Tailscale SSH and tmux.
 
-📖 **[Read the full guide with hardware recommendations and setup details](https://nathangathright.github.io/ipad-remote-setup/)**
-
-## What This Does
-
-This script configures your Mac to be accessible remotely via Tailscale's secure mesh network, allowing you to code from your iPad using an SSH client like Terminus.
-
-Features:
-- [x] Installs and configures Tailscale with SSH support
-- [x] Sets up tmux for persistent sessions
-- [x] Creates a convenient `coffee` alias for quick connection
-- [x] Uses Tailscale's keyless authentication (no SSH keys to manage)
+📖 **[Read the full guide with hardware recommendations](https://nathangathright.github.io/ipad-remote-setup/)**
 
 ## Quick Start
 
@@ -22,115 +12,57 @@ On your Mac (the one you want to access remotely):
 curl -fsSL https://raw.githubusercontent.com/nathangathright/ipad-remote-setup/main/setup.sh | bash
 ```
 
-Or download and run locally:
+On your iPad, install [Tailscale](https://apps.apple.com/us/app/tailscale/id1470499037) and [Terminus](https://apps.apple.com/us/app/termius-ssh-client/id549039908), then scan the QR code displayed by the script.
+
+Connect and run `coffee` to start coding.
+
+## What the Script Does
+
+- Installs Tailscale (CLI version) with SSH support
+- Installs tmux for persistent sessions
+- Creates a `coffee` alias that attaches to your Claude Code session
+- Displays a QR code to configure Terminus on your iPad
+
+## Manual Setup
+
+If you prefer to set things up manually:
+
+### 1. Tailscale
 
 ```bash
-git clone https://github.com/nathangathright/ipad-remote-setup.git
-cd ipad-remote-setup
-./setup.sh
+brew install tailscale
+sudo tailscale up --ssh
 ```
 
-## What You'll Need
+> **Note:** Use the Homebrew CLI version. The App Store/GUI versions don't support Tailscale SSH server.
 
-### On Your Mac:
-- macOS (any recent version)
-- Internet connection
-- Admin privileges (for `sudo` commands)
-
-### On Your iPad:
-- [Tailscale](https://apps.apple.com/us/app/tailscale/id1470499037) (free)
-- [Terminus](https://apps.apple.com/us/app/termius-ssh-client/id549039908) (free tier works great)
-
-## After Running the Script
-
-1. **On your iPad**, install Tailscale and Terminus from the App Store
-2. Sign into Tailscale with the same account you used on your Mac
-3. Open Terminus and create a new host:
-   - **Hostname:** The hostname displayed by the setup script (e.g., `mac-studio`)
-   - **Username:** Your Mac username (also displayed by the script)
-   - **Authentication:** Leave as default - Tailscale SSH handles it automatically
-4. Connect and run: `coffee`
-
-## Daily Workflow
-
-Once set up, your workflow is simple:
-
-1. Open Terminus on your iPad
-2. Connect to your Mac
-3. Run: `coffee`
-4. Start coding with Claude Code (or any other terminal-based tool)
-
-When you're done, just detach from tmux (`Ctrl+B`, then `D`) or close Terminus. Your session keeps running at home.
-
-## The "Coffee" Alias
-
-The script adds a convenient alias to your shell:
+### 2. Tmux
 
 ```bash
-coffee
+brew install tmux
+
+cat > ~/.tmux.conf << 'EOF'
+set -g mouse on
+set -g history-limit 10000
+set -g default-terminal "screen-256color"
+EOF
+
+echo "alias coffee='tmux attach -t claude || tmux new-session -s claude claude'" >> ~/.zshrc
+source ~/.zshrc
 ```
 
-This automatically:
-- Attaches to your existing `claude` tmux session if it exists
-- Creates a new session and starts Claude Code if it doesn't exist
-- Handles all the tmux complexity for you
+### 3. iPad
 
-## Security
-
-- All connections are encrypted through Tailscale's mesh network
-- No ports exposed to the public internet
-- Tailscale SSH uses keyless authentication (no private keys to manage or leak)
-- Your Mac is only accessible to devices on your Tailscale network
-
-## Troubleshooting
-
-**Can't connect from iPad:**
-- Verify both devices show as "Connected" in the Tailscale app
-- Try using the full MagicDNS hostname (e.g., `mac-studio.tail-scale.ts.net`)
-- Check that Tailscale SSH is enabled: `tailscale status | grep ssh`
-
-**Tmux session not found:**
-- Create it manually: `tmux new-session -s claude`
-- Or just run `coffee` - it will create it automatically
-
-**Connection drops on coffee shop WiFi:**
-- Try reconnecting - Tailscale handles network transitions well
-- Your tmux session keeps running regardless, so no work is lost
-
-## What Gets Installed
-
-- **Tailscale** (via Homebrew) - Secure mesh VPN
-- **tmux** (via Homebrew) - Terminal multiplexer for persistent sessions
-- **Configuration files:**
-  - `~/.tmux.conf` - tmux settings
-  - `~/.zshrc` or `~/.bashrc` - coffee alias
+Install Tailscale (same account) and Terminus. Create a host using your Mac's Tailscale hostname and username.
 
 ## Uninstalling
 
-To remove everything installed by this script:
-
 ```bash
-# Remove Tailscale
-brew uninstall tailscale
-
-# Remove tmux
-brew uninstall tmux
-
-# Remove config files
+brew uninstall tailscale tmux qrencode
 rm ~/.tmux.conf
-
-# Remove alias from shell config
-# Manually edit ~/.zshrc or ~/.bashrc to remove the coffee alias
+# Remove the coffee alias from ~/.zshrc
 ```
-
-## Related
-
-For the complete guide including hardware recommendations, shopping list, and detailed setup instructions, see: [Remote Coding from Coffee Shops: iPad Mini + Claude Code Setup](https://nathangathright.github.io/ipad-remote-setup/)
 
 ## License
 
 MIT
-
-## Contributing
-
-Found a bug or have a suggestion? Open an issue or submit a pull request!

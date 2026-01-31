@@ -59,6 +59,16 @@ else
     echo "✓ tmux already installed"
 fi
 
+# Install qrencode for QR code generation
+echo ""
+echo "📱 Installing qrencode for QR code display..."
+if ! command -v qrencode &> /dev/null; then
+    brew install qrencode
+    echo "✓ qrencode installed"
+else
+    echo "✓ qrencode already installed"
+fi
+
 # Create tmux config
 echo ""
 echo "📝 Creating tmux configuration..."
@@ -77,22 +87,6 @@ set -g status-style bg=black,fg=white
 set -g status-right '#[fg=cyan]%Y-%m-%d %H:%M'
 EOF
 echo "✓ tmux configuration created"
-
-# Configure SSH keepalive for WiFi stability
-echo ""
-echo "🔧 Configuring SSH keepalive for stable connections..."
-if ! grep -q "ClientAliveInterval" /etc/ssh/sshd_config 2>/dev/null; then
-    sudo tee -a /etc/ssh/sshd_config > /dev/null << 'EOF'
-
-# Keep SSH connections alive (added by iPad remote setup)
-ClientAliveInterval 60
-ClientAliveCountMax 3
-EOF
-    sudo launchctl kickstart -k system/com.openssh.sshd
-    echo "✓ SSH keepalive configured"
-else
-    echo "✓ SSH keepalive already configured"
-fi
 
 # Add coffee alias to shell config
 echo ""
@@ -127,6 +121,9 @@ else
     echo "✓ tmux session 'claude' already exists"
 fi
 
+# Build SSH URL for QR code
+SSH_URL="ssh://$(whoami)@${TAILSCALE_HOST}"
+
 # Display connection information
 echo ""
 echo "✅ Setup complete!"
@@ -139,12 +136,25 @@ echo "Hostname: $TAILSCALE_HOST"
 echo "Username: $(whoami)"
 echo "Authentication: Tailscale SSH (automatic)"
 echo ""
+
+# Display QR code if qrencode is available
+if command -v qrencode &> /dev/null; then
+    echo "Scan this QR code from your iPad to open in Terminus:"
+    echo ""
+    qrencode -t UTF8 "$SSH_URL"
+    echo ""
+    echo "URL: $SSH_URL"
+else
+    echo "URL: $SSH_URL"
+fi
+
+echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "Next steps:"
 echo "1. On your iPad, install Tailscale and Terminus from the App Store"
 echo "2. Sign into Tailscale with the same account"
-echo "3. In Terminus, create a new host:"
+echo "3. Scan the QR code above, or manually create a new host in Terminus:"
 echo "   - Hostname: $TAILSCALE_HOST"
 echo "   - Username: $(whoami)"
 echo "   - Authentication: Default settings"
