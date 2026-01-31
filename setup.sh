@@ -44,9 +44,11 @@ else
 fi
 
 # Get Tailscale hostname
-TAILSCALE_HOST=$(tailscale status | grep "$(hostname)" | awk '{print $2}' | head -1)
+# Extract the hostname for the current machine (first line with this machine's IP)
+TAILSCALE_HOST=$(tailscale status --self=true | awk 'NR==1 {print $2}')
 if [ -z "$TAILSCALE_HOST" ]; then
-    TAILSCALE_HOST=$(hostname)
+    # Fallback: strip .local from system hostname
+    TAILSCALE_HOST=$(hostname | sed 's/\.local$//' | tr '[:upper:]' '[:lower:]')
 fi
 
 # Install tmux
