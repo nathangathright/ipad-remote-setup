@@ -1,0 +1,157 @@
+#!/bin/bash
+# iPad Remote Coding Setup Script
+# Sets up a Mac for remote access via Tailscale SSH and tmux
+
+set -e  # Exit on error
+
+echo "🚀 Setting up Mac for remote coding from iPad..."
+echo ""
+
+# Check if running on macOS
+if [[ "$OSTYPE" != "darwin"* ]]; then
+    echo "❌ Error: This script is designed for macOS only"
+    exit 1
+fi
+
+# Check if Homebrew is installed
+if ! command -v brew &> /dev/null; then
+    echo "📦 Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+else
+    echo "✓ Homebrew already installed"
+fi
+
+# Install Tailscale
+echo ""
+echo "📡 Installing Tailscale CLI..."
+if ! command -v tailscale &> /dev/null; then
+    brew install tailscale
+    echo "✓ Tailscale installed"
+else
+    echo "✓ Tailscale already installed"
+fi
+
+# Start Tailscale with SSH enabled
+echo ""
+echo "🔐 Enabling Tailscale SSH..."
+if ! tailscale status &> /dev/null; then
+    echo "Please authenticate Tailscale in the browser window that opens..."
+    sudo tailscale up --ssh
+else
+    # Update to enable SSH if not already enabled
+    sudo tailscale up --ssh
+    echo "✓ Tailscale SSH enabled"
+fi
+
+# Get Tailscale hostname
+TAILSCALE_HOST=$(tailscale status | grep "$(hostname)" | awk '{print $2}' | head -1)
+if [ -z "$TAILSCALE_HOST" ]; then
+    TAILSCALE_HOST=$(hostname)
+fi
+
+# Install tmux
+echo ""
+echo "🖥️  Installing and configuring tmux..."
+if ! command -v tmux &> /dev/null; then
+    brew install tmux
+    echo "✓ tmux installed"
+else
+    echo "✓ tmux already installed"
+fi
+
+# Create tmux config
+echo ""
+echo "📝 Creating tmux configuration..."
+cat > ~/.tmux.conf << 'EOF'
+# Enable mouse support
+set -g mouse on
+
+# Increase scrollback buffer
+set -g history-limit 10000
+
+# Better colors
+set -g default-terminal "screen-256color"
+
+# Status bar styling
+set -g status-style bg=black,fg=white
+set -g status-right '#[fg=cyan]%Y-%m-%d %H:%M'
+EOF
+echo "✓ tmux configuration created"
+
+# Configure SSH keepalive for WiFi stability
+echo ""
+echo "🔧 Configuring SSH keepalive for stable connections..."
+if ! grep -q "ClientAliveInterval" /etc/ssh/sshd_config 2>/dev/null; then
+    sudo tee -a /etc/ssh/sshd_config > /dev/null << 'EOF'
+
+# Keep SSH connections alive (added by iPad remote setup)
+ClientAliveInterval 60
+ClientAliveCountMax 3
+EOF
+    sudo launchctl kickstart -k system/com.openssh.sshd
+    echo "✓ SSH keepalive configured"
+else
+    echo "✓ SSH keepalive already configured"
+fi
+
+# Add coffee alias to shell config
+echo ""
+echo "☕ Adding 'coffee' alias to shell..."
+SHELL_CONFIG=""
+if [ -f ~/.zshrc ]; then
+    SHELL_CONFIG=~/.zshrc
+elif [ -f ~/.bashrc ]; then
+    SHELL_CONFIG=~/.bashrc
+elif [ -f ~/.bash_profile ]; then
+    SHELL_CONFIG=~/.bash_profile
+fi
+
+if [ -n "$SHELL_CONFIG" ]; then
+    if ! grep -q "alias coffee=" "$SHELL_CONFIG" 2>/dev/null; then
+        echo "" >> "$SHELL_CONFIG"
+        echo "# iPad Remote Coding - Quick tmux attachment" >> "$SHELL_CONFIG"
+        echo "alias coffee='tmux attach -t claude || tmux new-session -s claude claude'" >> "$SHELL_CONFIG"
+        echo "✓ 'coffee' alias added to $SHELL_CONFIG"
+    else
+        echo "✓ 'coffee' alias already exists"
+    fi
+fi
+
+# Create initial tmux session (detached)
+echo ""
+echo "🎯 Creating initial Claude Code tmux session..."
+if ! tmux has-session -t claude 2>/dev/null; then
+    tmux new-session -s claude -d
+    echo "✓ tmux session 'claude' created"
+else
+    echo "✓ tmux session 'claude' already exists"
+fi
+
+# Display connection information
+echo ""
+echo "✅ Setup complete!"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📱 iPad Connection Details:"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "Hostname: $TAILSCALE_HOST"
+echo "Username: $(whoami)"
+echo "Authentication: Tailscale SSH (automatic)"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "Next steps:"
+echo "1. On your iPad, install Tailscale and Terminus from the App Store"
+echo "2. Sign into Tailscale with the same account"
+echo "3. In Terminus, create a new host:"
+echo "   - Hostname: $TAILSCALE_HOST"
+echo "   - Username: $(whoami)"
+echo "   - Authentication: Default settings"
+echo "4. Connect and run: coffee"
+echo ""
+echo "To start Claude Code locally:"
+echo "  source $SHELL_CONFIG  # Load the new alias"
+echo "  coffee                # Connect to tmux session"
+echo ""
+echo "Happy remote coding! ☕"
