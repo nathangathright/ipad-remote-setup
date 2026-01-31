@@ -2,6 +2,8 @@
 
 Automated setup script for remote coding from an iPad using Tailscale SSH and tmux.
 
+📖 **[Read the full guide with hardware recommendations and setup details](https://nathangathright.github.io/ipad-remote-setup/)**
+
 ## What This Does
 
 This script configures your Mac to be accessible remotely via Tailscale's secure mesh network, allowing you to code from your iPad using an SSH client like Terminus.
@@ -18,13 +20,13 @@ Features:
 On your Mac (the one you want to access remotely):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/ipad-remote-setup/main/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/nathangathright/ipad-remote-setup/main/setup.sh | bash
 ```
 
 Or download and run locally:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ipad-remote-setup.git
+git clone https://github.com/nathangathright/ipad-remote-setup.git
 cd ipad-remote-setup
 ./setup.sh
 ```
@@ -128,7 +130,7 @@ rm ~/.tmux.conf
 
 ## Related
 
-This setup is detailed in the blog post: [Remote Coding from Coffee Shops: iPad Mini + Claude Code Setup](../ipad-remote-coding-setup.md)
+For the complete guide including hardware recommendations, shopping list, and detailed setup instructions, see: [Remote Coding from Coffee Shops: iPad Mini + Claude Code Setup](https://nathangathright.github.io/ipad-remote-setup/)
 
 ## License
 

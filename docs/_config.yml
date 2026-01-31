@@ -1,0 +1,34 @@
+title: iPad Remote Coding Setup
+description: Automated setup for remote coding from iPad using Tailscale SSH and tmux
+theme: jekyll-theme-primer
+
+# Repository info
+repository: nathangathright/ipad-remote-setup
+
+# Navigation
+navigation:
+  - title: Home
+    url: /
+  - title: GitHub
+    url: https://github.com/nathangathright/ipad-remote-setup
+  - title: Setup Script
+    url: https://github.com/nathangathright/ipad-remote-setup/blob/main/setup.sh
+
+# Build settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    css_class: 'highlight'
+
+# Plugins
+plugins:
+  - jekyll-github-metadata
+  - jekyll-relative-links
+
+# Exclude files
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
