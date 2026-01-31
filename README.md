@@ -1,4 +1,4 @@
-# iPad Remote Coding Setup
+# Remote Coding from Coffee Shops: iPad Mini + Claude Code Setup
 
 Automated setup script for remote coding from an iPad using Tailscale SSH and tmux.
 
@@ -9,11 +9,10 @@ Automated setup script for remote coding from an iPad using Tailscale SSH and tm
 This script configures your Mac to be accessible remotely via Tailscale's secure mesh network, allowing you to code from your iPad using an SSH client like Terminus.
 
 Features:
-- ✅ Installs and configures Tailscale with SSH support
-- ✅ Sets up tmux for persistent sessions
-- ✅ Configures SSH keepalive for stable coffee shop WiFi connections
-- ✅ Creates a convenient `coffee` alias for quick connection
-- ✅ Uses Tailscale's keyless authentication (no SSH keys to manage)
+- [x] Installs and configures Tailscale with SSH support
+- [x] Sets up tmux for persistent sessions
+- [x] Creates a convenient `coffee` alias for quick connection
+- [x] Uses Tailscale's keyless authentication (no SSH keys to manage)
 
 ## Quick Start
 
@@ -95,8 +94,8 @@ This automatically:
 - Or just run `coffee` - it will create it automatically
 
 **Connection drops on coffee shop WiFi:**
-- The script already configured SSH keepalive for stability
-- If issues persist, try reconnecting - Tailscale handles network transitions well
+- Try reconnecting - Tailscale handles network transitions well
+- Your tmux session keeps running regardless, so no work is lost
 
 ## What Gets Installed
 
@@ -105,7 +104,6 @@ This automatically:
 - **Configuration files:**
   - `~/.tmux.conf` - tmux settings
   - `~/.zshrc` or `~/.bashrc` - coffee alias
-  - `/etc/ssh/sshd_config` - SSH keepalive settings
 
 ## Uninstalling
 
@@ -123,9 +121,6 @@ rm ~/.tmux.conf
 
 # Remove alias from shell config
 # Manually edit ~/.zshrc or ~/.bashrc to remove the coffee alias
-
-# Revert SSH config changes
-# Manually edit /etc/ssh/sshd_config to remove ClientAliveInterval settings
 ```
 
 ## Related
