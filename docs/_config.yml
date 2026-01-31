@@ -1,5 +1,7 @@
 title: iPad Remote Coding Setup
 description: Automated setup for remote coding from iPad using Tailscale SSH and tmux
+
+# Theme (included in github-pages gem)
 theme: jekyll-theme-primer
 
 # Repository info
@@ -22,10 +24,11 @@ kramdown:
   syntax_highlighter_opts:
     css_class: 'highlight'
 
-# Plugins
+# Plugins (all included in github-pages gem)
 plugins:
   - jekyll-github-metadata
   - jekyll-relative-links
+  - jekyll-theme-primer
 
 # Exclude files
 exclude:

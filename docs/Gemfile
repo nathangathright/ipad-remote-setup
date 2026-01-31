@@ -1,7 +1,3 @@
 source "https://rubygems.org"
 
-gem "jekyll", "~> 3.9"
-gem "jekyll-theme-primer"
-gem "jekyll-github-metadata"
-gem "jekyll-relative-links"
-gem "kramdown-parser-gfm"
+gem "github-pages", group: :jekyll_plugins
