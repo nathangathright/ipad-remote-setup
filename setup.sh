@@ -33,14 +33,21 @@ fi
 
 # Start Tailscale with SSH enabled
 echo ""
-echo "🔐 Enabling Tailscale SSH..."
+echo "🔐 Checking Tailscale SSH..."
 if ! tailscale status &> /dev/null; then
     echo "Please authenticate Tailscale in the browser window that opens..."
     sudo tailscale up --ssh
-else
-    # Update to enable SSH if not already enabled
-    sudo tailscale up --ssh
     echo "✓ Tailscale SSH enabled"
+else
+    # Check if SSH is already enabled
+    SSH_ENABLED=$(tailscale debug prefs 2>/dev/null | grep -c '"RunSSH": true' || echo 0)
+    if [ "$SSH_ENABLED" -eq 0 ]; then
+        echo "Enabling SSH (requires sudo)..."
+        sudo tailscale up --ssh
+        echo "✓ Tailscale SSH enabled"
+    else
+        echo "✓ Tailscale SSH already enabled"
+    fi
 fi
 
 # Get Tailscale hostname
