@@ -81,6 +81,18 @@ Run `unlock` after connecting to enter your password and restore keychain access
 
 Install Tailscale (same account) and Terminus. Create a host using your Mac's Tailscale hostname and username.
 
+## Previewing Web Projects
+
+Since your iPad and Mac are on the same Tailscale network, any dev server running on your Mac is already accessible from your iPad — just visit `http://<tailscale-hostname>:<port>` in Safari. Make sure your dev server binds to `0.0.0.0` instead of `localhost` (most frameworks have a `--host` flag for this).
+
+To share a preview with someone outside your Tailscale network, use [Tailscale Funnel](https://tailscale.com/kb/1223/funnel):
+
+```bash
+tailscale funnel 3000
+```
+
+This gives you a public `https://<hostname>.<tailnet>.ts.net` URL with no extra tools or accounts required.
+
 ## Uninstalling
 
 ```bash

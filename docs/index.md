@@ -65,6 +65,18 @@ Here's my typical coffee shop session:
 
 Everything stays running at home, so you can pick up where you left off from any location. The `coffee` alias handles all the tmux session management automatically.
 
+## Previewing Web Projects
+
+Since your iPad and Mac are on the same Tailscale network, any dev server running on your Mac is already accessible from your iPad. Just visit `http://<tailscale-hostname>:<port>` in Safari. Make sure your dev server binds to `0.0.0.0` instead of `localhost` (most frameworks have a `--host` flag for this).
+
+Need to share a preview with someone outside your Tailscale network? Use [Tailscale Funnel](https://tailscale.com/kb/1223/funnel):
+
+```bash
+tailscale funnel 3000
+```
+
+This gives you a public `https://<hostname>.<tailnet>.ts.net` URL — no ngrok, no extra accounts, no ephemeral URLs. It's already built into the Tailscale you have installed.
+
 ## Questions?
 
 Feel free to reach out if you run into any issues replicating this setup. The automated setup script and documentation are available at [github.com/nathangathright/ipad-remote-setup](https://github.com/nathangathright/ipad-remote-setup).
