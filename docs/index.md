@@ -5,6 +5,8 @@ title: Remote Coding from Coffee Shops - iPad Mini + Claude Code Setup
 
 I wanted to code from coffee shops without lugging a laptop. So I built a mobile workstation: an iPad Mini that connects to my Mac Studio at home running Claude Code. All the computing power stays home. I just carry the display, keyboard, and mouse.
 
+This is my setup. There are many[^1] like[^2] it[^3], but this one is mine.
+
 ## The Shopping List
 
 - **[Mac Studio](https://www.amazon.com/dp/B0FNS1ZX5B?tag=nathangathright-20)** - The always-on powerhouse at home running Claude Code. Any Mac works, but desktop machines handle the "always available" role best.
@@ -24,7 +26,7 @@ Run the setup script on your Mac (the one you want to access remotely):
 curl -fsSL https://raw.githubusercontent.com/nathangathright/ipad-remote-setup/main/setup.sh | bash
 ```
 
-This installs Tailscale and tmux, configures everything for remote access, and displays a QR code for easy iPad setup. Tailscale encrypts all traffic end-to-end and your Mac is only accessible to devices on your private network—no ports exposed to the internet.
+This installs Tailscale and tmux, configures everything for remote access, and displays a QR code for easy iPad setup. It also adds a few shell helpers: `coffee` to attach to your tmux session, `unlock` to unlock the macOS keychain (which is locked by default over SSH), and `cc-start`/`cc-continue` shortcuts for Claude Code. Tailscale encrypts all traffic end-to-end and your Mac is only accessible to devices on your private network—no ports exposed to the internet.
 
 If you prefer to set things up manually, see the [README](https://github.com/nathangathright/ipad-remote-setup) for step-by-step instructions.
 
@@ -45,13 +47,17 @@ Here's my typical coffee shop session:
 
 1. **Arrive and set up** - Takes about 2 minutes to assemble everything
 2. **Open Terminus** and connect to Mac Studio via Tailscale
-3. **Run the coffee alias:**
+3. **Unlock the keychain** if you need git or code signing:
+   ```bash
+   unlock
+   ```
+4. **Run the coffee alias:**
    ```bash
    coffee
    ```
-4. **Start coding** - Claude Code is exactly where you left it, or starts fresh if this is your first time
-5. **Use voice input** - Tap to activate Wispr Flow and speak prompts to Claude
-6. **Detach when leaving:**
+5. **Start coding** - Claude Code is exactly where you left it, or starts fresh if this is your first time. You can also use `cc-start` or `cc-continue` to launch Claude Code directly.
+6. **Use voice input** - Tap to activate Wispr Flow and speak prompts to Claude
+7. **Detach when leaving:**
    ```bash
    # Press Ctrl+B, then D to detach
    # Or just close Terminus - tmux keeps running
@@ -64,6 +70,10 @@ Everything stays running at home, so you can pick up where you left off from any
 Feel free to reach out if you run into any issues replicating this setup. The automated setup script and documentation are available at [github.com/nathangathright/ipad-remote-setup](https://github.com/nathangathright/ipad-remote-setup).
 
 Happy remote coding!
+
+[^1]: [Remote Claude Code Sessions: How to Work on Your MVP While Pretending to Have a Social Life](https://medium.com/@ajordanbojanic/remote-claude-code-sessions-how-to-work-on-your-mvp-while-pretending-to-have-a-social-life-1a6d28af3c7e)
+[^2]: [Claude Code Is Better on Your Phone](https://harper.blog/2026/01/05/claude-code-is-better-on-your-phone/)
+[^3]: [Claude Code on Phone](https://sealos.io/blog/claude-code-on-phone)
 
 ---
 

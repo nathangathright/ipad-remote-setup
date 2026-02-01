@@ -85,6 +85,10 @@ cat > ~/.tmux.conf << 'EOF'
 # Enable mouse support
 set -g mouse on
 
+# Fix trackpad/phone scroll (without this, scrolling cycles command history)
+bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft= '#{pane_in_mode}' 'send-keys -M' 'select-pane -t=; copy-mode -e; send-keys -M'"
+bind -n WheelDownPane select-pane -t= \; send-keys -M
+
 # Increase scrollback buffer
 set -g history-limit 10000
 
@@ -117,6 +121,33 @@ if [ -n "$SHELL_CONFIG" ]; then
         echo "✓ 'coffee' alias added to $SHELL_CONFIG"
     else
         echo "✓ 'coffee' alias already exists"
+    fi
+
+    if ! grep -q "alias cc-start=" "$SHELL_CONFIG" 2>/dev/null; then
+        echo "" >> "$SHELL_CONFIG"
+        echo "# Claude Code shortcuts" >> "$SHELL_CONFIG"
+        echo "alias cc-start='claude --dangerously-skip-permissions'" >> "$SHELL_CONFIG"
+        echo "alias cc-continue='claude --dangerously-skip-permissions --continue'" >> "$SHELL_CONFIG"
+        echo "✓ 'cc-start' and 'cc-continue' aliases added to $SHELL_CONFIG"
+    else
+        echo "✓ Claude Code aliases already exist"
+    fi
+
+    if ! grep -q "unlock()" "$SHELL_CONFIG" 2>/dev/null; then
+        echo "" >> "$SHELL_CONFIG"
+        echo "# Unlock macOS keychain (locked by default over SSH)" >> "$SHELL_CONFIG"
+        cat >> "$SHELL_CONFIG" << 'FUNC'
+unlock() {
+  if security show-keychain-info ~/Library/Keychains/login.keychain-db 2>/dev/null; then
+    echo "Keychain is already unlocked"
+  else
+    security unlock-keychain ~/Library/Keychains/login.keychain-db
+  fi
+}
+FUNC
+        echo "✓ 'unlock' function added to $SHELL_CONFIG"
+    else
+        echo "✓ 'unlock' function already exists"
     fi
 fi
 
@@ -168,9 +199,10 @@ echo "   - Hostname: $TAILSCALE_HOST"
 echo "   - Username: $(whoami)"
 echo "   - Authentication: Default settings"
 echo "4. Connect and run: coffee"
+echo "5. Run 'unlock' if you need git or keychain access"
 echo ""
 echo "To start Claude Code locally:"
-echo "  source $SHELL_CONFIG  # Load the new alias"
+echo "  source $SHELL_CONFIG  # Load the new alias and functions"
 echo "  coffee                # Connect to tmux session"
 echo ""
 echo "Happy remote coding! ☕"
