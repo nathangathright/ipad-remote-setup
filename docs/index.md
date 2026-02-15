@@ -28,7 +28,7 @@ curl -fsSL https://raw.githubusercontent.com/nathangathright/ipad-remote-setup/m
 
 This installs Tailscale and tmux, configures everything for remote access, and displays a QR code for easy iPad setup. It also adds powerful shell helpers:
 
-- **`cc`** - The only command you need! Context-aware session manager (resumes in tmux, auto-attaches to single session, shows menu for multiple, prompts for new)
+- **`sesh`** - The only command you need! Context-aware session manager (resumes in tmux, auto-attaches to single session, shows menu for multiple, prompts for new)
 - **`unlock`** - Unlocks the macOS keychain (locked by default over SSH)
 
 The script also installs a **Claude Code skill** that teaches it how to properly preview web projects over Tailscale for any framework—so Claude always knows to bind servers to `0.0.0.0` instead of localhost.
@@ -58,23 +58,23 @@ Here's my typical coffee shop session:
    ```bash
    unlock
    ```
-4. **Start coding - just type `cc`:**
+4. **Start coding - just type `sesh`:**
    ```bash
-   # The cc command does the right thing based on context:
+   # The sesh command does the right thing based on context:
 
    # Inside tmux? Resumes Claude Code
-   cc
+   sesh
 
    # No sessions? Prompts for name and path (smart defaults)
-   cc
+   sesh
    # 📝 Session name [myapp]: ↵
    # 📂 Project path [/Users/you/myapp]: ↵
 
    # One session? Auto-attaches
-   cc
+   sesh
 
    # Multiple sessions? Interactive menu (arrow keys + enter)
-   cc
+   sesh
    # 📋 Select a session:
    #  > work
    #    side-project
@@ -82,10 +82,10 @@ Here's my typical coffee shop session:
    # [↑/↓: navigate | enter: select | q: cancel]
 
    # Or be explicit
-   cc myproject ~/code
-   cc -s work -p ~/app
+   sesh myproject ~/code
+   sesh -s work -p ~/app
    ```
-5. **Code away** - Claude Code launches automatically. The `cc` function handles everything: session management, directory navigation, and starting Claude Code.
+5. **Code away** - Claude Code launches automatically. The `sesh` function handles everything: session management, directory navigation, and starting Claude Code.
 6. **Use voice input** - Tap to activate Wispr Flow and speak prompts to Claude
 7. **Detach when leaving:**
    ```bash

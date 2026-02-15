@@ -14,13 +14,13 @@ curl -fsSL https://raw.githubusercontent.com/nathangathright/ipad-remote-setup/m
 
 On your iPad, install [Tailscale](https://apps.apple.com/us/app/tailscale/id1470499037) and [Terminus](https://apps.apple.com/us/app/termius-ssh-client/id549039908), then scan the QR code displayed by the script.
 
-Connect and run `coffee` to start coding.
+Connect and run `sesh` to start coding.
 
 ## What the Script Does
 
 - Installs Tailscale (CLI version) with SSH support
 - Installs tmux for persistent sessions with smooth scrolling
-- Creates a smart `cc` function - the only command you need for Claude Code sessions
+- Creates a smart `sesh` function - the only command you need for Claude Code sessions
 - Creates an `unlock` function to unlock the macOS keychain over SSH
 - Installs a Claude Code skill that teaches it how to preview web projects over Tailscale
 - Displays a QR code to configure Terminus on your iPad
@@ -69,12 +69,12 @@ source ~/.zshrc
 
 ### 3. CC Function (The Only Command You Need)
 
-Add the `cc` function and its interactive menu helper - it handles everything based on context:
+Add the `sesh` function and its interactive menu helper - it handles everything based on context:
 
 ```bash
 cat >> ~/.zshrc << 'EOF'
 # Interactive menu helper (arrow keys + enter)
-_cc_select() {
+_sesh_select() {
   local prompt="$1"
   shift
   local -a options=("$@")
@@ -86,17 +86,17 @@ _cc_select() {
   local saved_stty
   saved_stty=$(command stty -g 2>/dev/null)
 
-  _cc_select_cleanup() {
+  _sesh_select_cleanup() {
     printf "${ESC}[?25h" >/dev/tty 2>/dev/null
     [[ -n "$saved_stty" ]] && command stty "$saved_stty" 2>/dev/null
   }
 
-  trap '_cc_select_cleanup; return 1' INT TERM HUP
+  trap '_sesh_select_cleanup; return 1' INT TERM HUP
 
   printf "${ESC}[?25l" >/dev/tty
   command stty -echo raw 2>/dev/null
 
-  _cc_select_draw() {
+  _sesh_select_draw() {
     local i
     [[ ${1:-0} -eq 1 ]] && printf "${ESC}[$((num_options + 2))A" >/dev/tty
     printf "${ESC}[2K\r${ESC}[1m%s${ESC}[0m\r\n" "$prompt" >/dev/tty
@@ -112,21 +112,21 @@ _cc_select() {
     printf "${ESC}[2K\r${ESC}[2m  [↑/↓: navigate | enter: select | q: cancel]${ESC}[0m" >/dev/tty
   }
 
-  _cc_select_draw 0
+  _sesh_select_draw 0
 
   while true; do
     read -r -k 1 key 2>/dev/null
     case "$key" in
       $'\r'|$'\n')
         printf "\r\n" >/dev/tty
-        _cc_select_cleanup
+        _sesh_select_cleanup
         trap - INT TERM HUP
         SELECTED="${options[$((selected + 1))]}"
         return 0
         ;;
       q|Q)
         printf "\r\n" >/dev/tty
-        _cc_select_cleanup
+        _sesh_select_cleanup
         trap - INT TERM HUP
         SELECTED=""
         return 1
@@ -142,7 +142,7 @@ _cc_select() {
           esac
         elif [[ -z "$seq1" ]]; then
           printf "\r\n" >/dev/tty
-          _cc_select_cleanup
+          _sesh_select_cleanup
           trap - INT TERM HUP
           SELECTED=""
           return 1
@@ -151,11 +151,11 @@ _cc_select() {
       k) selected=$(( (selected - 1 + num_options) % num_options )) ;;
       j) selected=$(( (selected + 1) % num_options )) ;;
     esac
-    _cc_select_draw 1
+    _sesh_select_draw 1
   done
 }
 
-cc() {
+sesh() {
   local session_name=""
   local project_path=""
 
@@ -209,7 +209,7 @@ cc() {
     elif [ "$session_count" -gt 1 ]; then
       # Multiple sessions, let user choose with interactive menu
       local -a session_list=("${(@f)sessions}")
-      if _cc_select "📋 Select a session:" "${session_list[@]}"; then
+      if _sesh_select "📋 Select a session:" "${session_list[@]}"; then
         session_name="$SELECTED"
         echo "🔗 Attaching to session: $session_name"
         tmux attach -t "$session_name"
@@ -288,9 +288,9 @@ source ~/.zshrc
 
 **Usage examples:**
 ```bash
-cc                           # Context-aware - does the right thing
-cc myproject ~/code          # Explicit session and path
-cc -s work -p ~/app          # Named parameters
+sesh                         # Context-aware - does the right thing
+sesh myproject ~/code        # Explicit session and path
+sesh -s work -p ~/app        # Named parameters
 ```
 
 ### 4. Keychain Unlock
@@ -339,7 +339,7 @@ brew uninstall tailscale tmux qrencode
 rm ~/.tmux.conf
 rm -rf ~/.agents/skills/tailscale-preview
 rm ~/.claude/skills/tailscale-preview
-# Remove the cc function and unlock function from ~/.zshrc
+# Remove the sesh function and unlock function from ~/.zshrc
 ```
 
 ## License

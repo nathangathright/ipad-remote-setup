@@ -120,11 +120,11 @@ elif [ -f ~/.bash_profile ]; then
 fi
 
 if [ -n "$SHELL_CONFIG" ]; then
-    if ! grep -q "cc()" "$SHELL_CONFIG" 2>/dev/null; then
+    if ! grep -q "sesh()" "$SHELL_CONFIG" 2>/dev/null; then
         echo "" >> "$SHELL_CONFIG"
         echo "# Claude Code - Interactive menu helper (arrow keys + enter)" >> "$SHELL_CONFIG"
         cat >> "$SHELL_CONFIG" << 'FUNC'
-_cc_select() {
+_sesh_select() {
   local prompt="$1"
   shift
   local -a options=("$@")
@@ -136,17 +136,17 @@ _cc_select() {
   local saved_stty
   saved_stty=$(command stty -g 2>/dev/null)
 
-  _cc_select_cleanup() {
+  _sesh_select_cleanup() {
     printf "${ESC}[?25h" >/dev/tty 2>/dev/null
     [[ -n "$saved_stty" ]] && command stty "$saved_stty" 2>/dev/null
   }
 
-  trap '_cc_select_cleanup; return 1' INT TERM HUP
+  trap '_sesh_select_cleanup; return 1' INT TERM HUP
 
   printf "${ESC}[?25l" >/dev/tty
   command stty -echo raw 2>/dev/null
 
-  _cc_select_draw() {
+  _sesh_select_draw() {
     local i
     [[ ${1:-0} -eq 1 ]] && printf "${ESC}[$((num_options + 2))A" >/dev/tty
     printf "${ESC}[2K\r${ESC}[1m%s${ESC}[0m\r\n" "$prompt" >/dev/tty
@@ -162,21 +162,21 @@ _cc_select() {
     printf "${ESC}[2K\r${ESC}[2m  [↑/↓: navigate | enter: select | q: cancel]${ESC}[0m" >/dev/tty
   }
 
-  _cc_select_draw 0
+  _sesh_select_draw 0
 
   while true; do
     read -r -k 1 key 2>/dev/null
     case "$key" in
       $'\r'|$'\n')
         printf "\r\n" >/dev/tty
-        _cc_select_cleanup
+        _sesh_select_cleanup
         trap - INT TERM HUP
         SELECTED="${options[$((selected + 1))]}"
         return 0
         ;;
       q|Q)
         printf "\r\n" >/dev/tty
-        _cc_select_cleanup
+        _sesh_select_cleanup
         trap - INT TERM HUP
         SELECTED=""
         return 1
@@ -192,7 +192,7 @@ _cc_select() {
           esac
         elif [[ -z "$seq1" ]]; then
           printf "\r\n" >/dev/tty
-          _cc_select_cleanup
+          _sesh_select_cleanup
           trap - INT TERM HUP
           SELECTED=""
           return 1
@@ -201,7 +201,7 @@ _cc_select() {
       k) selected=$(( (selected - 1 + num_options) % num_options )) ;;
       j) selected=$(( (selected + 1) % num_options )) ;;
     esac
-    _cc_select_draw 1
+    _sesh_select_draw 1
   done
 }
 
@@ -209,7 +209,7 @@ FUNC
         echo "" >> "$SHELL_CONFIG"
         echo "# Claude Code - Smart tmux session manager" >> "$SHELL_CONFIG"
         cat >> "$SHELL_CONFIG" << 'FUNC'
-cc() {
+sesh() {
   local session_name=""
   local project_path=""
 
@@ -263,7 +263,7 @@ cc() {
     elif [ "$session_count" -gt 1 ]; then
       # Multiple sessions, let user choose with interactive menu
       local -a session_list=("${(@f)sessions}")
-      if _cc_select "📋 Select a session:" "${session_list[@]}"; then
+      if _sesh_select "📋 Select a session:" "${session_list[@]}"; then
         session_name="$SELECTED"
         echo "🔗 Attaching to session: $session_name"
         tmux attach -t "$session_name"
@@ -330,9 +330,9 @@ cc() {
   tmux attach -t "$session_name"
 }
 FUNC
-        echo "✓ 'cc' function added to $SHELL_CONFIG"
+        echo "✓ 'sesh' function added to $SHELL_CONFIG"
     else
-        echo "✓ 'cc' function already exists"
+        echo "✓ 'sesh' function already exists"
     fi
 
     if ! grep -q "unlock()" "$SHELL_CONFIG" 2>/dev/null; then
@@ -628,13 +628,13 @@ echo "3. Scan the QR code above, or manually create a new host in Terminus:"
 echo "   - Hostname: $TAILSCALE_HOST"
 echo "   - Username: $(whoami)"
 echo "   - Authentication: Default settings"
-echo "4. Connect and run: coffee"
+echo "4. Connect and run: sesh"
 echo "5. Run 'unlock' if you need git or keychain access"
 echo ""
 echo "Shell functions:"
-echo "  cc                       # Smart: detects sessions, prompts when needed, resumes in tmux"
-echo "  cc myproject ~/code      # Create/attach 'myproject' session at ~/code"
-echo "  cc -s work -p ~/app      # Using named parameters"
+echo "  sesh                      # Smart: detects sessions, prompts when needed, resumes in tmux"
+echo "  seshmyproject ~/code      # Create/attach 'myproject' session at ~/code"
+echo "  sesh-s work -p ~/app      # Using named parameters"
 echo "  unlock                   # Unlock macOS keychain over SSH"
 echo ""
 echo "To start using these commands:"
