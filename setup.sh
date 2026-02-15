@@ -184,7 +184,8 @@ cc() {
         i=$((i + 1))
       done <<< "$sessions"
 
-      read -p "Select session (1-$session_count): " choice
+      printf "Select session (1-$session_count): "
+      read choice
 
       if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "$session_count" ]; then
         session_name=$(echo "$sessions" | sed -n "${choice}p")
@@ -198,13 +199,15 @@ cc() {
     else
       # No sessions exist - prompt for new session details
       local default_name=$(basename "$PWD")
-      read -p "📝 Session name [$default_name]: " session_name
+      printf "📝 Session name [%s]: " "$default_name"
+      read session_name
       if [ -z "$session_name" ]; then
         session_name="$default_name"
       fi
 
       local default_path="$PWD"
-      read -p "📂 Project path [$default_path]: " project_path
+      printf "📂 Project path [%s]: " "$default_path"
+      read project_path
       if [ -z "$project_path" ]; then
         project_path="$default_path"
       fi
@@ -221,7 +224,8 @@ cc() {
   # If no path provided yet, prompt for it
   if [ -z "$project_path" ]; then
     local default_path="$PWD"
-    read -p "📂 Project path [$default_path]: " project_path
+    printf "📂 Project path [%s]: " "$default_path"
+    read project_path
     if [ -z "$project_path" ]; then
       project_path="$default_path"
     fi
@@ -232,9 +236,9 @@ cc() {
 
   # Check if directory exists
   if [ ! -d "$project_path" ]; then
-    read -p "❓ Directory '$project_path' does not exist. Create it? (y/n) " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
+    printf "❓ Directory '%s' does not exist. Create it? (y/n) " "$project_path"
+    read REPLY
+    if [[ $REPLY =~ ^[Yy] ]]; then
       mkdir -p "$project_path"
       echo "✅ Created directory: $project_path"
     else
