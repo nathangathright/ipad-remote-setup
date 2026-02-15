@@ -28,7 +28,7 @@ curl -fsSL https://raw.githubusercontent.com/nathangathright/ipad-remote-setup/m
 
 This installs Tailscale and tmux, configures everything for remote access, and displays a QR code for easy iPad setup. It also adds powerful shell helpers:
 
-- **`sesh`** - The only command you need! Context-aware session manager (resumes in tmux, auto-attaches to single session, shows menu for multiple, prompts for new)
+- **[`sesh`](https://github.com/nathangathright/sesh)** - The only command you need! Context-aware session manager (resumes in tmux, auto-attaches to single session, shows menu for multiple, prompts for new)
 - **`unlock`** - Unlocks the macOS keychain (locked by default over SSH)
 
 The script also installs a **Claude Code skill** that teaches it how to properly preview web projects over Tailscale for any framework—so Claude always knows to bind servers to `0.0.0.0` instead of localhost.
