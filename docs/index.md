@@ -26,7 +26,11 @@ Run the setup script on your Mac (the one you want to access remotely):
 curl -fsSL https://raw.githubusercontent.com/nathangathright/ipad-remote-setup/main/setup.sh | bash
 ```
 
-This installs Tailscale and tmux, configures everything for remote access, and displays a QR code for easy iPad setup. It also adds a few shell helpers: `coffee` to attach to your tmux session, `unlock` to unlock the macOS keychain (which is locked by default over SSH), and `cc-start`/`cc-continue` shortcuts for Claude Code. Tailscale encrypts all traffic end-to-end and your Mac is only accessible to devices on your private network—no ports exposed to the internet.
+This installs Tailscale and tmux, configures everything for remote access, and displays a QR code for easy iPad setup. It also adds a few shell helpers: `coffee` to attach to your tmux session, `unlock` to unlock the macOS keychain (which is locked by default over SSH), and `cc-start`/`cc-continue` shortcuts for Claude Code.
+
+The script also installs a **Claude Code skill** that teaches it how to properly preview web projects over Tailscale for any framework—so Claude always knows to bind servers to `0.0.0.0` instead of localhost.
+
+Tailscale encrypts all traffic end-to-end and your Mac is only accessible to devices on your private network—no ports exposed to the internet.
 
 If you prefer to set things up manually, see the [README](https://github.com/nathangathright/ipad-remote-setup) for step-by-step instructions.
 
@@ -68,6 +72,10 @@ Everything stays running at home, so you can pick up where you left off from any
 ## Previewing Web Projects
 
 Since your iPad and Mac are on the same Tailscale network, any dev server running on your Mac is already accessible from your iPad. Just visit `http://<tailscale-hostname>:<port>` in Safari. Make sure your dev server binds to `0.0.0.0` instead of `localhost` (most frameworks have a `--host` flag for this).
+
+The setup script installs a Claude Code skill that knows the correct preview commands for every major framework. Just ask Claude to "preview this project over Tailscale" and it will handle the rest!
+
+**Manual reference**: See [CLAUDE.md](https://github.com/nathangathright/ipad-remote-setup/blob/main/CLAUDE.md) for detailed framework-specific commands (Vite, Next.js, Cloudflare Workers, etc.) and troubleshooting tips.
 
 Need to share a preview with someone outside your Tailscale network? Use [Tailscale Funnel](https://tailscale.com/kb/1223/funnel):
 
