@@ -69,10 +69,92 @@ source ~/.zshrc
 
 ### 3. CC Function (The Only Command You Need)
 
-Add the `cc` function - it handles everything based on context:
+Add the `cc` function and its interactive menu helper - it handles everything based on context:
 
 ```bash
 cat >> ~/.zshrc << 'EOF'
+# Interactive menu helper (arrow keys + enter)
+_cc_select() {
+  local prompt="$1"
+  shift
+  local -a options=("$@")
+  local num_options=${#options[@]}
+  local selected=0
+  local key
+  local ESC=$'\e'
+
+  local saved_stty
+  saved_stty=$(command stty -g 2>/dev/null)
+
+  _cc_select_cleanup() {
+    printf "${ESC}[?25h" >/dev/tty 2>/dev/null
+    [[ -n "$saved_stty" ]] && command stty "$saved_stty" 2>/dev/null
+  }
+
+  trap '_cc_select_cleanup; return 1' INT TERM HUP
+
+  printf "${ESC}[?25l" >/dev/tty
+  command stty -echo raw 2>/dev/null
+
+  _cc_select_draw() {
+    local i
+    [[ ${1:-0} -eq 1 ]] && printf "${ESC}[$((num_options + 2))A" >/dev/tty
+    printf "${ESC}[2K\r${ESC}[1m%s${ESC}[0m\r\n" "$prompt" >/dev/tty
+    for ((i = 0; i < num_options; i++)); do
+      printf "${ESC}[2K\r" >/dev/tty
+      if [[ $i -eq $selected ]]; then
+        printf "  ${ESC}[7m${ESC}[1m > %s ${ESC}[0m" "${options[$((i + 1))]}" >/dev/tty
+      else
+        printf "  ${ESC}[2m   %s${ESC}[0m" "${options[$((i + 1))]}" >/dev/tty
+      fi
+      printf "\r\n" >/dev/tty
+    done
+    printf "${ESC}[2K\r${ESC}[2m  [↑/↓: navigate | enter: select | q: cancel]${ESC}[0m" >/dev/tty
+  }
+
+  _cc_select_draw 0
+
+  while true; do
+    read -r -k 1 key 2>/dev/null
+    case "$key" in
+      $'\r'|$'\n')
+        printf "\r\n" >/dev/tty
+        _cc_select_cleanup
+        trap - INT TERM HUP
+        SELECTED="${options[$((selected + 1))]}"
+        return 0
+        ;;
+      q|Q)
+        printf "\r\n" >/dev/tty
+        _cc_select_cleanup
+        trap - INT TERM HUP
+        SELECTED=""
+        return 1
+        ;;
+      "$ESC")
+        local seq1="" seq2=""
+        read -r -k 1 -t 0.1 seq1 2>/dev/null
+        read -r -k 1 -t 0.1 seq2 2>/dev/null
+        if [[ "$seq1" == "[" || "$seq1" == "O" ]]; then
+          case "$seq2" in
+            A) selected=$(( (selected - 1 + num_options) % num_options )) ;;
+            B) selected=$(( (selected + 1) % num_options )) ;;
+          esac
+        elif [[ -z "$seq1" ]]; then
+          printf "\r\n" >/dev/tty
+          _cc_select_cleanup
+          trap - INT TERM HUP
+          SELECTED=""
+          return 1
+        fi
+        ;;
+      k) selected=$(( (selected - 1 + num_options) % num_options )) ;;
+      j) selected=$(( (selected + 1) % num_options )) ;;
+    esac
+    _cc_select_draw 1
+  done
+}
+
 cc() {
   local session_name=""
   local project_path=""
@@ -125,24 +207,15 @@ cc() {
       tmux attach -t "$session_name"
       return
     elif [ "$session_count" -gt 1 ]; then
-      # Multiple sessions, let user choose
-      echo "📋 Available sessions:"
-      local i=1
-      while IFS= read -r sess; do
-        echo "  $i) $sess"
-        i=$((i + 1))
-      done <<< "$sessions"
-
-      printf "Select session (1-$session_count): "
-      read choice
-
-      if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "$session_count" ]; then
-        session_name=$(echo "$sessions" | sed -n "${choice}p")
+      # Multiple sessions, let user choose with interactive menu
+      local -a session_list=("${(@f)sessions}")
+      if _cc_select "📋 Select a session:" "${session_list[@]}"; then
+        session_name="$SELECTED"
         echo "🔗 Attaching to session: $session_name"
         tmux attach -t "$session_name"
         return
       else
-        echo "❌ Invalid selection"
+        echo "❌ Cancelled"
         return 1
       fi
     else

@@ -73,12 +73,13 @@ Here's my typical coffee shop session:
    # One session? Auto-attaches
    cc
 
-   # Multiple sessions? Shows menu
+   # Multiple sessions? Interactive menu (arrow keys + enter)
    cc
-   # 📋 Available sessions:
-   #   1) work
-   #   2) side-project
-   #   3) claude
+   # 📋 Select a session:
+   #  > work
+   #    side-project
+   #    claude
+   # [↑/↓: navigate | enter: select | q: cancel]
 
    # Or be explicit
    cc myproject ~/code
