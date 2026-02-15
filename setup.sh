@@ -107,9 +107,9 @@ set -g status-right '#[fg=cyan]%Y-%m-%d %H:%M'
 EOF
 echo "✓ tmux configuration created"
 
-# Add coffee alias to shell config
+# Add shell functions and aliases
 echo ""
-echo "☕ Adding 'coffee' alias to shell..."
+echo "☕ Adding shell functions and aliases..."
 SHELL_CONFIG=""
 if [ -f ~/.zshrc ]; then
     SHELL_CONFIG=~/.zshrc
@@ -120,21 +120,88 @@ elif [ -f ~/.bash_profile ]; then
 fi
 
 if [ -n "$SHELL_CONFIG" ]; then
-    if ! grep -q "alias coffee=" "$SHELL_CONFIG" 2>/dev/null; then
+    if ! grep -q "coffee()" "$SHELL_CONFIG" 2>/dev/null; then
         echo "" >> "$SHELL_CONFIG"
-        echo "# iPad Remote Coding - Quick tmux attachment" >> "$SHELL_CONFIG"
-        echo "alias coffee='tmux attach -t claude || tmux new-session -s claude claude'" >> "$SHELL_CONFIG"
-        echo "✓ 'coffee' alias added to $SHELL_CONFIG"
+        echo "# iPad Remote Coding - Smart tmux session manager" >> "$SHELL_CONFIG"
+        cat >> "$SHELL_CONFIG" << 'FUNC'
+coffee() {
+  local session_name=""
+  local project_path=""
+
+  # Parse arguments
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      -s|--session)
+        session_name="$2"
+        shift 2
+        ;;
+      -p|--path)
+        project_path="$2"
+        shift 2
+        ;;
+      *)
+        # Positional arguments: first is session, second is path
+        if [ -z "$session_name" ]; then
+          session_name="$1"
+        elif [ -z "$project_path" ]; then
+          project_path="$1"
+        fi
+        shift
+        ;;
+    esac
+  done
+
+  # Default session name if not provided
+  if [ -z "$session_name" ]; then
+    session_name="claude"
+  fi
+
+  # Check if session already exists
+  if tmux has-session -t "$session_name" 2>/dev/null; then
+    echo "☕ Attaching to existing session: $session_name"
+    tmux attach -t "$session_name"
+    return
+  fi
+
+  # Session doesn't exist, need a path
+  if [ -z "$project_path" ]; then
+    read -p "📂 Enter project path: " project_path
+  fi
+
+  # Expand ~ to home directory
+  project_path="${project_path/#\~/$HOME}"
+
+  # Check if directory exists
+  if [ ! -d "$project_path" ]; then
+    read -p "❓ Directory '$project_path' does not exist. Create it? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      mkdir -p "$project_path"
+      echo "✅ Created directory: $project_path"
     else
-        echo "✓ 'coffee' alias already exists"
+      echo "❌ Aborted."
+      return 1
+    fi
+  fi
+
+  # Create new session, navigate to path, and start Claude Code
+  echo "☕ Creating new session '$session_name' at $project_path"
+  tmux new-session -s "$session_name" -c "$project_path" -d
+  tmux send-keys -t "$session_name" "claude --dangerously-skip-permissions" C-m
+  tmux attach -t "$session_name"
+}
+FUNC
+        echo "✓ 'coffee' function added to $SHELL_CONFIG"
+    else
+        echo "✓ 'coffee' function already exists"
     fi
 
-    if ! grep -q "alias cc-start=" "$SHELL_CONFIG" 2>/dev/null; then
+    if ! grep -q "alias cc-danger=" "$SHELL_CONFIG" 2>/dev/null; then
         echo "" >> "$SHELL_CONFIG"
         echo "# Claude Code shortcuts" >> "$SHELL_CONFIG"
-        echo "alias cc-start='claude --dangerously-skip-permissions'" >> "$SHELL_CONFIG"
-        echo "alias cc-continue='claude --dangerously-skip-permissions --continue'" >> "$SHELL_CONFIG"
-        echo "✓ 'cc-start' and 'cc-continue' aliases added to $SHELL_CONFIG"
+        echo "alias cc-danger='claude --dangerously-skip-permissions'" >> "$SHELL_CONFIG"
+        echo "alias cc-resume='claude --dangerously-skip-permissions --continue'" >> "$SHELL_CONFIG"
+        echo "✓ 'cc-danger' and 'cc-resume' aliases added to $SHELL_CONFIG"
     else
         echo "✓ Claude Code aliases already exist"
     fi
@@ -145,7 +212,7 @@ if [ -n "$SHELL_CONFIG" ]; then
         cat >> "$SHELL_CONFIG" << 'FUNC'
 unlock() {
   if security show-keychain-info ~/Library/Keychains/login.keychain-db 2>/dev/null; then
-    echo "Keychain is already unlocked"
+    echo "🔓 Keychain is already unlocked"
   else
     security unlock-keychain ~/Library/Keychains/login.keychain-db
   fi
@@ -435,8 +502,14 @@ echo "   - Authentication: Default settings"
 echo "4. Connect and run: coffee"
 echo "5. Run 'unlock' if you need git or keychain access"
 echo ""
-echo "To start Claude Code locally:"
-echo "  source $SHELL_CONFIG  # Load the new alias and functions"
-echo "  coffee                # Connect to tmux session"
+echo "Shell functions and aliases:"
+echo "  coffee [session] [path]  # Smart session manager (interactive)"
+echo "  coffee -s work -p ~/code # Create/attach to 'work' session at ~/code"
+echo "  cc-danger                # Start Claude Code (skip permissions)"
+echo "  cc-resume                # Resume previous Claude Code session"
+echo "  unlock                   # Unlock macOS keychain over SSH"
+echo ""
+echo "To start using these commands:"
+echo "  source $SHELL_CONFIG  # Load the new functions and aliases"
 echo ""
 echo "Happy remote coding! ☕"

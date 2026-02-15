@@ -20,8 +20,8 @@ Connect and run `coffee` to start coding.
 
 - Installs Tailscale (CLI version) with SSH support
 - Installs tmux for persistent sessions with smooth scrolling
-- Creates a `coffee` alias that attaches to your Claude Code session
-- Creates `cc-start` and `cc-continue` aliases for Claude Code
+- Creates a smart `coffee` function for managing tmux sessions and projects
+- Creates `cc-danger` and `cc-resume` aliases for Claude Code
 - Creates an `unlock` function to unlock the macOS keychain over SSH
 - Installs a Claude Code skill that teaches it how to preview web projects over Tailscale
 - Displays a QR code to configure Terminus on your iPad
@@ -65,13 +65,96 @@ set -sg escape-time 10
 set -g focus-events on
 EOF
 
-echo "alias coffee='tmux attach -t claude || tmux new-session -s claude claude'" >> ~/.zshrc
-echo "alias cc-start='claude --dangerously-skip-permissions'" >> ~/.zshrc
-echo "alias cc-continue='claude --dangerously-skip-permissions --continue'" >> ~/.zshrc
+echo "alias cc-danger='claude --dangerously-skip-permissions'" >> ~/.zshrc
+echo "alias cc-resume='claude --dangerously-skip-permissions --continue'" >> ~/.zshrc
 source ~/.zshrc
 ```
 
-### 3. Keychain Unlock
+### 3. Coffee Function (Smart Session Manager)
+
+Add the `coffee` function for managing tmux sessions:
+
+```bash
+cat >> ~/.zshrc << 'EOF'
+coffee() {
+  local session_name=""
+  local project_path=""
+
+  # Parse arguments
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      -s|--session)
+        session_name="$2"
+        shift 2
+        ;;
+      -p|--path)
+        project_path="$2"
+        shift 2
+        ;;
+      *)
+        # Positional arguments: first is session, second is path
+        if [ -z "$session_name" ]; then
+          session_name="$1"
+        elif [ -z "$project_path" ]; then
+          project_path="$1"
+        fi
+        shift
+        ;;
+    esac
+  done
+
+  # Default session name if not provided
+  if [ -z "$session_name" ]; then
+    session_name="claude"
+  fi
+
+  # Check if session already exists
+  if tmux has-session -t "$session_name" 2>/dev/null; then
+    echo "☕ Attaching to existing session: $session_name"
+    tmux attach -t "$session_name"
+    return
+  fi
+
+  # Session doesn't exist, need a path
+  if [ -z "$project_path" ]; then
+    read -p "📂 Enter project path: " project_path
+  fi
+
+  # Expand ~ to home directory
+  project_path="${project_path/#\~/$HOME}"
+
+  # Check if directory exists
+  if [ ! -d "$project_path" ]; then
+    read -p "❓ Directory '$project_path' does not exist. Create it? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      mkdir -p "$project_path"
+      echo "✅ Created directory: $project_path"
+    else
+      echo "❌ Aborted."
+      return 1
+    fi
+  fi
+
+  # Create new session, navigate to path, and start Claude Code
+  echo "☕ Creating new session '$session_name' at $project_path"
+  tmux new-session -s "$session_name" -c "$project_path" -d
+  tmux send-keys -t "$session_name" "claude --dangerously-skip-permissions" C-m
+  tmux attach -t "$session_name"
+}
+EOF
+source ~/.zshrc
+```
+
+**Usage examples:**
+```bash
+coffee                              # Default 'claude' session (prompts for path)
+coffee myproject ~/Developer/myapp  # Create/attach 'myproject' at ~/Developer/myapp
+coffee -s work -p ~/code            # Named parameters
+coffee myproject                    # Attach if exists, or prompt for path
+```
+
+### 4. Keychain Unlock
 
 macOS locks the login keychain over SSH, which blocks git credential helpers, code signing, and other tools. Add this function to your shell config:
 
@@ -79,7 +162,7 @@ macOS locks the login keychain over SSH, which blocks git credential helpers, co
 cat >> ~/.zshrc << 'EOF'
 unlock() {
   if security show-keychain-info ~/Library/Keychains/login.keychain-db 2>/dev/null; then
-    echo "Keychain is already unlocked"
+    echo "🔓 Keychain is already unlocked"
   else
     security unlock-keychain ~/Library/Keychains/login.keychain-db
   fi
@@ -90,7 +173,7 @@ source ~/.zshrc
 
 Run `unlock` after connecting to enter your password and restore keychain access.
 
-### 4. iPad
+### 5. iPad
 
 Install Tailscale (same account) and Terminus. Create a host using your Mac's Tailscale hostname and username.
 
@@ -117,7 +200,7 @@ brew uninstall tailscale tmux qrencode
 rm ~/.tmux.conf
 rm -rf ~/.agents/skills/tailscale-preview
 rm ~/.claude/skills/tailscale-preview
-# Remove the coffee, cc-start, cc-continue aliases and unlock function from ~/.zshrc
+# Remove the coffee function, cc-danger, cc-resume aliases, and unlock function from ~/.zshrc
 ```
 
 ## License
