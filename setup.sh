@@ -85,15 +85,21 @@ cat > ~/.tmux.conf << 'EOF'
 # Enable mouse support
 set -g mouse on
 
-# Fix trackpad/phone scroll (without this, scrolling cycles command history)
-bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft= '#{pane_in_mode}' 'send-keys -M' 'select-pane -t=; copy-mode -e; send-keys -M'"
-bind -n WheelDownPane select-pane -t= \; send-keys -M
-
 # Increase scrollback buffer
 set -g history-limit 10000
 
-# Better colors
-set -g default-terminal "screen-256color"
+# Better terminal type for modern terminals
+set -g default-terminal "tmux-256color"
+
+# Terminal overrides for better color and mouse support
+set -ga terminal-overrides ",xterm-256color:Tc"
+set -ga terminal-overrides ",*256col*:Tc"
+
+# Fast escape time (better responsiveness)
+set -sg escape-time 10
+
+# Focus events for better terminal integration
+set -g focus-events on
 
 # Status bar styling
 set -g status-style bg=black,fg=white
