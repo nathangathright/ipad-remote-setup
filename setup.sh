@@ -120,11 +120,11 @@ elif [ -f ~/.bash_profile ]; then
 fi
 
 if [ -n "$SHELL_CONFIG" ]; then
-    if ! grep -q "coffee()" "$SHELL_CONFIG" 2>/dev/null; then
+    if ! grep -q "cc()" "$SHELL_CONFIG" 2>/dev/null; then
         echo "" >> "$SHELL_CONFIG"
-        echo "# iPad Remote Coding - Smart tmux session manager" >> "$SHELL_CONFIG"
+        echo "# Claude Code - Smart tmux session manager" >> "$SHELL_CONFIG"
         cat >> "$SHELL_CONFIG" << 'FUNC'
-coffee() {
+cc() {
   local session_name=""
   local project_path=""
 
@@ -151,14 +151,51 @@ coffee() {
     esac
   done
 
-  # Default session name if not provided
+  # If no session name provided, check existing sessions
   if [ -z "$session_name" ]; then
-    session_name="claude"
+    # Get list of existing sessions
+    local sessions=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
+    local session_count=0
+
+    if [ -n "$sessions" ]; then
+      session_count=$(echo "$sessions" | wc -l | tr -d ' ')
+    fi
+
+    if [ "$session_count" -eq 1 ]; then
+      # Only one session, attach to it
+      session_name=$(echo "$sessions" | head -1)
+      echo "🔗 Attaching to session: $session_name"
+      tmux attach -t "$session_name"
+      return
+    elif [ "$session_count" -gt 1 ]; then
+      # Multiple sessions, let user choose
+      echo "📋 Available sessions:"
+      local i=1
+      while IFS= read -r sess; do
+        echo "  $i) $sess"
+        i=$((i + 1))
+      done <<< "$sessions"
+
+      read -p "Select session (1-$session_count): " choice
+
+      if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "$session_count" ]; then
+        session_name=$(echo "$sessions" | sed -n "${choice}p")
+        echo "🔗 Attaching to session: $session_name"
+        tmux attach -t "$session_name"
+        return
+      else
+        echo "❌ Invalid selection"
+        return 1
+      fi
+    else
+      # No sessions exist, use default name
+      session_name="claude"
+    fi
   fi
 
-  # Check if session already exists
+  # Check if session already exists (when session name was provided)
   if tmux has-session -t "$session_name" 2>/dev/null; then
-    echo "☕ Attaching to existing session: $session_name"
+    echo "🔗 Attaching to existing session: $session_name"
     tmux attach -t "$session_name"
     return
   fi
@@ -185,15 +222,15 @@ coffee() {
   fi
 
   # Create new session, navigate to path, and start Claude Code
-  echo "☕ Creating new session '$session_name' at $project_path"
+  echo "✨ Creating new session '$session_name' at $project_path"
   tmux new-session -s "$session_name" -c "$project_path" -d
   tmux send-keys -t "$session_name" "claude --dangerously-skip-permissions" C-m
   tmux attach -t "$session_name"
 }
 FUNC
-        echo "✓ 'coffee' function added to $SHELL_CONFIG"
+        echo "✓ 'cc' function added to $SHELL_CONFIG"
     else
-        echo "✓ 'coffee' function already exists"
+        echo "✓ 'cc' function already exists"
     fi
 
     if ! grep -q "alias cc-danger=" "$SHELL_CONFIG" 2>/dev/null; then
@@ -503,8 +540,8 @@ echo "4. Connect and run: coffee"
 echo "5. Run 'unlock' if you need git or keychain access"
 echo ""
 echo "Shell functions and aliases:"
-echo "  coffee [session] [path]  # Smart session manager (interactive)"
-echo "  coffee -s work -p ~/code # Create/attach to 'work' session at ~/code"
+echo "  cc [session] [path]      # Smart session manager (auto-detects sessions)"
+echo "  cc -s work -p ~/code     # Create/attach to 'work' session at ~/code"
 echo "  cc-danger                # Start Claude Code (skip permissions)"
 echo "  cc-resume                # Resume previous Claude Code session"
 echo "  unlock                   # Unlock macOS keychain over SSH"

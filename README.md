@@ -20,7 +20,7 @@ Connect and run `coffee` to start coding.
 
 - Installs Tailscale (CLI version) with SSH support
 - Installs tmux for persistent sessions with smooth scrolling
-- Creates a smart `coffee` function for managing tmux sessions and projects
+- Creates a smart `cc` function for managing tmux sessions and projects
 - Creates `cc-danger` and `cc-resume` aliases for Claude Code
 - Creates an `unlock` function to unlock the macOS keychain over SSH
 - Installs a Claude Code skill that teaches it how to preview web projects over Tailscale
@@ -70,13 +70,13 @@ echo "alias cc-resume='claude --dangerously-skip-permissions --continue'" >> ~/.
 source ~/.zshrc
 ```
 
-### 3. Coffee Function (Smart Session Manager)
+### 3. CC Function (Smart Session Manager)
 
-Add the `coffee` function for managing tmux sessions:
+Add the `cc` function for managing tmux sessions with intelligent session detection:
 
 ```bash
 cat >> ~/.zshrc << 'EOF'
-coffee() {
+cc() {
   local session_name=""
   local project_path=""
 
@@ -103,14 +103,51 @@ coffee() {
     esac
   done
 
-  # Default session name if not provided
+  # If no session name provided, check existing sessions
   if [ -z "$session_name" ]; then
-    session_name="claude"
+    # Get list of existing sessions
+    local sessions=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
+    local session_count=0
+
+    if [ -n "$sessions" ]; then
+      session_count=$(echo "$sessions" | wc -l | tr -d ' ')
+    fi
+
+    if [ "$session_count" -eq 1 ]; then
+      # Only one session, attach to it
+      session_name=$(echo "$sessions" | head -1)
+      echo "🔗 Attaching to session: $session_name"
+      tmux attach -t "$session_name"
+      return
+    elif [ "$session_count" -gt 1 ]; then
+      # Multiple sessions, let user choose
+      echo "📋 Available sessions:"
+      local i=1
+      while IFS= read -r sess; do
+        echo "  $i) $sess"
+        i=$((i + 1))
+      done <<< "$sessions"
+
+      read -p "Select session (1-$session_count): " choice
+
+      if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "$session_count" ]; then
+        session_name=$(echo "$sessions" | sed -n "${choice}p")
+        echo "🔗 Attaching to session: $session_name"
+        tmux attach -t "$session_name"
+        return
+      else
+        echo "❌ Invalid selection"
+        return 1
+      fi
+    else
+      # No sessions exist, use default name
+      session_name="claude"
+    fi
   fi
 
-  # Check if session already exists
+  # Check if session already exists (when session name was provided)
   if tmux has-session -t "$session_name" 2>/dev/null; then
-    echo "☕ Attaching to existing session: $session_name"
+    echo "🔗 Attaching to existing session: $session_name"
     tmux attach -t "$session_name"
     return
   fi
@@ -137,7 +174,7 @@ coffee() {
   fi
 
   # Create new session, navigate to path, and start Claude Code
-  echo "☕ Creating new session '$session_name' at $project_path"
+  echo "✨ Creating new session '$session_name' at $project_path"
   tmux new-session -s "$session_name" -c "$project_path" -d
   tmux send-keys -t "$session_name" "claude --dangerously-skip-permissions" C-m
   tmux attach -t "$session_name"
@@ -148,10 +185,10 @@ source ~/.zshrc
 
 **Usage examples:**
 ```bash
-coffee                              # Default 'claude' session (prompts for path)
-coffee myproject ~/Developer/myapp  # Create/attach 'myproject' at ~/Developer/myapp
-coffee -s work -p ~/code            # Named parameters
-coffee myproject                    # Attach if exists, or prompt for path
+cc                                  # Smart mode: auto-attach if 1 session, show menu if multiple
+cc myproject ~/Developer/myapp      # Create/attach 'myproject' at ~/Developer/myapp
+cc -s work -p ~/code                # Named parameters
+cc myproject                        # Attach to 'myproject' if exists, or prompt for path
 ```
 
 ### 4. Keychain Unlock
@@ -200,7 +237,7 @@ brew uninstall tailscale tmux qrencode
 rm ~/.tmux.conf
 rm -rf ~/.agents/skills/tailscale-preview
 rm ~/.claude/skills/tailscale-preview
-# Remove the coffee function, cc-danger, cc-resume aliases, and unlock function from ~/.zshrc
+# Remove the cc function, cc-danger, cc-resume aliases, and unlock function from ~/.zshrc
 ```
 
 ## License

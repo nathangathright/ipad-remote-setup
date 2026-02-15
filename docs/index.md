@@ -28,7 +28,7 @@ curl -fsSL https://raw.githubusercontent.com/nathangathright/ipad-remote-setup/m
 
 This installs Tailscale and tmux, configures everything for remote access, and displays a QR code for easy iPad setup. It also adds several powerful shell helpers:
 
-- **`coffee`** - Smart tmux session manager that creates/attaches sessions and starts Claude Code
+- **`cc`** - Smart tmux session manager with auto-detection (single session = auto-attach, multiple = menu)
 - **`cc-danger`** / **`cc-resume`** - Quick shortcuts for starting/resuming Claude Code
 - **`unlock`** - Unlocks the macOS keychain (locked by default over SSH)
 
@@ -61,19 +61,19 @@ Here's my typical coffee shop session:
    ```
 4. **Start or resume your work:**
    ```bash
-   # Quick start (default session)
-   coffee
+   # Smart mode - auto-detects sessions
+   cc                          # 1 session: auto-attach, multiple: show menu, none: create new
 
-   # Or create a named session for a specific project
-   coffee myproject ~/Developer/myproject
+   # Create a named session for a specific project
+   cc myproject ~/Developer/myproject
 
    # Using flags for clarity
-   coffee --session work --path ~/code/work-project
+   cc --session work --path ~/code/work-project
 
    # Resume existing session (path ignored if session exists)
-   coffee myproject
+   cc myproject
    ```
-5. **Start coding** - Claude Code launches automatically in new sessions. The `coffee` function handles tmux session management, directory navigation, and starting Claude Code.
+5. **Start coding** - Claude Code launches automatically in new sessions. The `cc` function handles tmux session management, directory navigation, and starting Claude Code.
 6. **Use voice input** - Tap to activate Wispr Flow and speak prompts to Claude
 7. **Detach when leaving:**
    ```bash
