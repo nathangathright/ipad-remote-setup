@@ -151,6 +151,14 @@ cc() {
     esac
   done
 
+  # Check if we're already inside a tmux session
+  if [ -n "$TMUX" ]; then
+    # We're inside tmux - resume/start Claude Code
+    echo "🔄 Starting Claude Code..."
+    claude --dangerously-skip-permissions --continue
+    return
+  fi
+
   # If no session name provided, check existing sessions
   if [ -z "$session_name" ]; then
     # Get list of existing sessions
@@ -188,8 +196,18 @@ cc() {
         return 1
       fi
     else
-      # No sessions exist, use default name
-      session_name="claude"
+      # No sessions exist - prompt for new session details
+      local default_name=$(basename "$PWD")
+      read -p "📝 Session name [$default_name]: " session_name
+      if [ -z "$session_name" ]; then
+        session_name="$default_name"
+      fi
+
+      local default_path="$PWD"
+      read -p "📂 Project path [$default_path]: " project_path
+      if [ -z "$project_path" ]; then
+        project_path="$default_path"
+      fi
     fi
   fi
 
@@ -200,9 +218,13 @@ cc() {
     return
   fi
 
-  # Session doesn't exist, need a path
+  # If no path provided yet, prompt for it
   if [ -z "$project_path" ]; then
-    read -p "📂 Enter project path: " project_path
+    local default_path="$PWD"
+    read -p "📂 Project path [$default_path]: " project_path
+    if [ -z "$project_path" ]; then
+      project_path="$default_path"
+    fi
   fi
 
   # Expand ~ to home directory
@@ -231,16 +253,6 @@ FUNC
         echo "✓ 'cc' function added to $SHELL_CONFIG"
     else
         echo "✓ 'cc' function already exists"
-    fi
-
-    if ! grep -q "alias cc-danger=" "$SHELL_CONFIG" 2>/dev/null; then
-        echo "" >> "$SHELL_CONFIG"
-        echo "# Claude Code shortcuts" >> "$SHELL_CONFIG"
-        echo "alias cc-danger='claude --dangerously-skip-permissions'" >> "$SHELL_CONFIG"
-        echo "alias cc-resume='claude --dangerously-skip-permissions --continue'" >> "$SHELL_CONFIG"
-        echo "✓ 'cc-danger' and 'cc-resume' aliases added to $SHELL_CONFIG"
-    else
-        echo "✓ Claude Code aliases already exist"
     fi
 
     if ! grep -q "unlock()" "$SHELL_CONFIG" 2>/dev/null; then
@@ -539,11 +551,10 @@ echo "   - Authentication: Default settings"
 echo "4. Connect and run: coffee"
 echo "5. Run 'unlock' if you need git or keychain access"
 echo ""
-echo "Shell functions and aliases:"
-echo "  cc [session] [path]      # Smart session manager (auto-detects sessions)"
-echo "  cc -s work -p ~/code     # Create/attach to 'work' session at ~/code"
-echo "  cc-danger                # Start Claude Code (skip permissions)"
-echo "  cc-resume                # Resume previous Claude Code session"
+echo "Shell functions:"
+echo "  cc                       # Smart: detects sessions, prompts when needed, resumes in tmux"
+echo "  cc myproject ~/code      # Create/attach 'myproject' session at ~/code"
+echo "  cc -s work -p ~/app      # Using named parameters"
 echo "  unlock                   # Unlock macOS keychain over SSH"
 echo ""
 echo "To start using these commands:"

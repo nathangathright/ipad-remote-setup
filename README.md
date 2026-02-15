@@ -20,8 +20,7 @@ Connect and run `coffee` to start coding.
 
 - Installs Tailscale (CLI version) with SSH support
 - Installs tmux for persistent sessions with smooth scrolling
-- Creates a smart `cc` function for managing tmux sessions and projects
-- Creates `cc-danger` and `cc-resume` aliases for Claude Code
+- Creates a smart `cc` function - the only command you need for Claude Code sessions
 - Creates an `unlock` function to unlock the macOS keychain over SSH
 - Installs a Claude Code skill that teaches it how to preview web projects over Tailscale
 - Displays a QR code to configure Terminus on your iPad
@@ -65,14 +64,12 @@ set -sg escape-time 10
 set -g focus-events on
 EOF
 
-echo "alias cc-danger='claude --dangerously-skip-permissions'" >> ~/.zshrc
-echo "alias cc-resume='claude --dangerously-skip-permissions --continue'" >> ~/.zshrc
 source ~/.zshrc
 ```
 
-### 3. CC Function (Smart Session Manager)
+### 3. CC Function (The Only Command You Need)
 
-Add the `cc` function for managing tmux sessions with intelligent session detection:
+Add the `cc` function - it handles everything based on context:
 
 ```bash
 cat >> ~/.zshrc << 'EOF'
@@ -102,6 +99,14 @@ cc() {
         ;;
     esac
   done
+
+  # Check if we're already inside a tmux session
+  if [ -n "$TMUX" ]; then
+    # We're inside tmux - resume/start Claude Code
+    echo "🔄 Starting Claude Code..."
+    claude --dangerously-skip-permissions --continue
+    return
+  fi
 
   # If no session name provided, check existing sessions
   if [ -z "$session_name" ]; then
@@ -140,8 +145,18 @@ cc() {
         return 1
       fi
     else
-      # No sessions exist, use default name
-      session_name="claude"
+      # No sessions exist - prompt for new session details
+      local default_name=$(basename "$PWD")
+      read -p "📝 Session name [$default_name]: " session_name
+      if [ -z "$session_name" ]; then
+        session_name="$default_name"
+      fi
+
+      local default_path="$PWD"
+      read -p "📂 Project path [$default_path]: " project_path
+      if [ -z "$project_path" ]; then
+        project_path="$default_path"
+      fi
     fi
   fi
 
@@ -152,9 +167,13 @@ cc() {
     return
   fi
 
-  # Session doesn't exist, need a path
+  # If no path provided yet, prompt for it
   if [ -z "$project_path" ]; then
-    read -p "📂 Enter project path: " project_path
+    local default_path="$PWD"
+    read -p "📂 Project path [$default_path]: " project_path
+    if [ -z "$project_path" ]; then
+      project_path="$default_path"
+    fi
   fi
 
   # Expand ~ to home directory
@@ -183,12 +202,18 @@ EOF
 source ~/.zshrc
 ```
 
+**How it works:**
+- **Inside tmux**: Resumes Claude Code
+- **0 sessions**: Prompts for name (defaults to current dir) and path (defaults to current dir)
+- **1 session**: Auto-attaches
+- **Multiple sessions**: Shows selection menu
+- **With arguments**: Creates/attaches to specified session
+
 **Usage examples:**
 ```bash
-cc                                  # Smart mode: auto-attach if 1 session, show menu if multiple
-cc myproject ~/Developer/myapp      # Create/attach 'myproject' at ~/Developer/myapp
-cc -s work -p ~/code                # Named parameters
-cc myproject                        # Attach to 'myproject' if exists, or prompt for path
+cc                           # Context-aware - does the right thing
+cc myproject ~/code          # Explicit session and path
+cc -s work -p ~/app          # Named parameters
 ```
 
 ### 4. Keychain Unlock
@@ -237,7 +262,7 @@ brew uninstall tailscale tmux qrencode
 rm ~/.tmux.conf
 rm -rf ~/.agents/skills/tailscale-preview
 rm ~/.claude/skills/tailscale-preview
-# Remove the cc function, cc-danger, cc-resume aliases, and unlock function from ~/.zshrc
+# Remove the cc function and unlock function from ~/.zshrc
 ```
 
 ## License

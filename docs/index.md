@@ -26,10 +26,9 @@ Run the setup script on your Mac (the one you want to access remotely):
 curl -fsSL https://raw.githubusercontent.com/nathangathright/ipad-remote-setup/main/setup.sh | bash
 ```
 
-This installs Tailscale and tmux, configures everything for remote access, and displays a QR code for easy iPad setup. It also adds several powerful shell helpers:
+This installs Tailscale and tmux, configures everything for remote access, and displays a QR code for easy iPad setup. It also adds powerful shell helpers:
 
-- **`cc`** - Smart tmux session manager with auto-detection (single session = auto-attach, multiple = menu)
-- **`cc-danger`** / **`cc-resume`** - Quick shortcuts for starting/resuming Claude Code
+- **`cc`** - The only command you need! Context-aware session manager (resumes in tmux, auto-attaches to single session, shows menu for multiple, prompts for new)
 - **`unlock`** - Unlocks the macOS keychain (locked by default over SSH)
 
 The script also installs a **Claude Code skill** that teaches it how to properly preview web projects over Tailscale for any framework—so Claude always knows to bind servers to `0.0.0.0` instead of localhost.
@@ -59,21 +58,33 @@ Here's my typical coffee shop session:
    ```bash
    unlock
    ```
-4. **Start or resume your work:**
+4. **Start coding - just type `cc`:**
    ```bash
-   # Smart mode - auto-detects sessions
-   cc                          # 1 session: auto-attach, multiple: show menu, none: create new
+   # The cc command does the right thing based on context:
 
-   # Create a named session for a specific project
-   cc myproject ~/Developer/myproject
+   # Inside tmux? Resumes Claude Code
+   cc
 
-   # Using flags for clarity
-   cc --session work --path ~/code/work-project
+   # No sessions? Prompts for name and path (smart defaults)
+   cc
+   # 📝 Session name [myapp]: ↵
+   # 📂 Project path [/Users/you/myapp]: ↵
 
-   # Resume existing session (path ignored if session exists)
-   cc myproject
+   # One session? Auto-attaches
+   cc
+
+   # Multiple sessions? Shows menu
+   cc
+   # 📋 Available sessions:
+   #   1) work
+   #   2) side-project
+   #   3) claude
+
+   # Or be explicit
+   cc myproject ~/code
+   cc -s work -p ~/app
    ```
-5. **Start coding** - Claude Code launches automatically in new sessions. The `cc` function handles tmux session management, directory navigation, and starting Claude Code.
+5. **Code away** - Claude Code launches automatically. The `cc` function handles everything: session management, directory navigation, and starting Claude Code.
 6. **Use voice input** - Tap to activate Wispr Flow and speak prompts to Claude
 7. **Detach when leaving:**
    ```bash
@@ -82,10 +93,6 @@ Here's my typical coffee shop session:
    ```
 
 Everything stays running at home, so you can pick up where you left off from any location. You can have multiple named sessions for different projects.
-
-**Other shortcuts:**
-- `cc-danger` - Start a new Claude Code session with permissions skipped
-- `cc-resume` - Resume the most recent Claude Code conversation
 
 ## Previewing Web Projects
 
