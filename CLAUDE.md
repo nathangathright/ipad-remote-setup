@@ -25,6 +25,18 @@ npm run dev -- --host 0.0.0.0
 # server: { host: '0.0.0.0' }
 ```
 
+**Important**: Vite 6+ blocks requests from unrecognized hosts by default. Add the Tailscale hostname to `server.allowedHosts` in your Vite config:
+
+```js
+// vite.config.js/ts
+export default defineConfig({
+  server: {
+    host: '0.0.0.0',
+    allowedHosts: ['your-tailscale-hostname'],
+  },
+});
+```
+
 **Preview URL**: `http://<tailscale-hostname>:5173`
 
 ### Next.js
@@ -72,6 +84,20 @@ npm run dev -- --host 0.0.0.0
 
 # Or in astro.config.mjs:
 # server: { host: '0.0.0.0' }
+```
+
+**Important**: Astro uses Vite under the hood, and Vite 6+ blocks requests from unrecognized hosts. Add the Tailscale hostname under the `vite` key in `astro.config.mjs`:
+
+```js
+// astro.config.mjs
+export default defineConfig({
+  server: { host: '0.0.0.0' },
+  vite: {
+    server: {
+      allowedHosts: ['your-tailscale-hostname'],
+    },
+  },
+});
 ```
 
 **Preview URL**: `http://<tailscale-hostname>:4321`
@@ -180,8 +206,9 @@ sudo tailscale up --hostname=my-mac
 When helping users preview web projects:
 
 1. **Always** include the `--host 0.0.0.0` flag (or equivalent)
-2. **Always** provide the Tailscale preview URL format
-3. **Remind** them the dev server must bind to 0.0.0.0 for Tailscale access
-4. **Suggest** Tailscale Funnel if they need to share publicly
+2. **Always** get the Tailscale hostname using `tailscale status --self`
+3. **Always** provide the complete Tailscale preview URL
+4. **Vite/Astro**: Add the Tailscale hostname to `server.allowedHosts` in the Vite config (Vite 6+ blocks unrecognized hosts by default)
+5. **Suggest** Tailscale Funnel if they need to share publicly
 
 Remember: The most common mistake is forgetting to bind to 0.0.0.0!
