@@ -22,7 +22,7 @@ Connect and run `sesh` to start coding.
 - Installs tmux for persistent sessions with smooth scrolling
 - Creates a smart `sesh` function - the only command you need for Claude Code sessions
 - Creates an `unlock` function to unlock the macOS keychain over SSH
-- Installs a Claude Code skill that teaches it how to preview web projects over Tailscale
+- Installs the [tailserve](https://github.com/nathangathright/tailserve) skill that teaches Claude Code how to preview web projects over Tailscale
 - Displays a QR code to configure Terminus on your iPad
 
 ## Manual Setup
@@ -103,27 +103,21 @@ Install Tailscale (same account) and Terminus. Create a host using your Mac's Ta
 
 ## Previewing Web Projects
 
-Since your iPad and Mac are on the same Tailscale network, any dev server running on your Mac is already accessible from your iPad — just visit `http://<tailscale-hostname>:<port>` in Safari. Make sure your dev server binds to `0.0.0.0` instead of `localhost` (most frameworks have a `--host` flag for this).
+Since your iPad and Mac are on the same Tailscale network, any dev server running on your Mac is already accessible from your iPad. The setup script installs the [tailserve](https://github.com/nathangathright/tailserve) skill that teaches Claude Code the correct commands for every framework (Vite, Next.js, Wrangler, etc.). Just ask Claude to "preview this project over Tailscale" and it will know what to do.
 
-The setup script installs a **Tailscale Preview skill** that teaches Claude Code the correct commands for every framework (Vite, Next.js, Wrangler, etc.). Just ask Claude to "preview this project over Tailscale" and it will know what to do!
-
-**Manual reference**: See [CLAUDE.md](CLAUDE.md) for detailed framework-specific commands and troubleshooting tips.
-
-To share a preview with someone outside your Tailscale network, use [Tailscale Funnel](https://tailscale.com/kb/1223/funnel):
-
-```bash
-tailscale funnel 3000
-```
-
-This gives you a public `https://<hostname>.<tailnet>.ts.net` URL with no extra tools or accounts required.
+tailserve covers three approaches:
+- **Direct tailnet access** — bind to `0.0.0.0`, access via `http://<hostname>:<port>`
+- **`tailscale serve`** — automatic HTTPS, path-based routing for multiple projects
+- **`tailscale funnel`** — public sharing via the internet
 
 ## Uninstalling
 
 ```bash
 brew uninstall tailscale tmux qrencode
 rm ~/.tmux.conf
-rm -rf ~/.agents/skills/tailscale-preview
-rm ~/.claude/skills/tailscale-preview
+rm ~/.claude/skills/tailserve
+rm ~/.agents/skills/tailserve
+rm -rf ~/Developer/tailserve
 # Remove the sesh function and unlock function from ~/.zshrc
 ```
 
