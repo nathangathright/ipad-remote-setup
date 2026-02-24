@@ -107,7 +107,7 @@ set -g status-right '#[fg=cyan]%Y-%m-%d %H:%M'
 EOF
 echo "✓ tmux configuration created"
 
-# Install sesh (smart tmux session manager for Claude Code)
+# Install sesh (tmux session manager for AI coding agents)
 echo ""
 echo "☕ Installing sesh..."
 curl -fsSL https://raw.githubusercontent.com/nathangathright/sesh/main/install.sh | bash
@@ -141,19 +141,9 @@ FUNC
     fi
 fi
 
-# Create initial tmux session (detached)
+# Install tailserve skill for AI coding agents
 echo ""
-echo "🎯 Creating initial Claude Code tmux session..."
-if ! tmux has-session -t claude 2>/dev/null; then
-    tmux new-session -s claude -d
-    echo "✓ tmux session 'claude' created"
-else
-    echo "✓ tmux session 'claude' already exists"
-fi
-
-# Install tailserve skill for Claude Code
-echo ""
-echo "📚 Installing tailserve skill for Claude Code..."
+echo "📚 Installing tailserve skill for AI coding agents..."
 TAILSERVE_DIR="$HOME/Developer/tailserve"
 
 if [ ! -d "$TAILSERVE_DIR" ]; then
@@ -183,7 +173,7 @@ echo ""
 
 # Display QR code if qrencode is available
 if command -v qrencode &> /dev/null; then
-    echo "Scan this QR code from your iPad to open in Terminus:"
+    echo "Scan this QR code from your iPad to open in Termius:"
     echo ""
     qrencode -t UTF8 "$SSH_URL"
     echo ""
@@ -196,19 +186,20 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "Next steps:"
-echo "1. On your iPad, install Tailscale and Terminus from the App Store"
+echo "1. On your iPad, install Tailscale and Termius from the App Store"
 echo "2. Sign into Tailscale with the same account"
-echo "3. Scan the QR code above, or manually create a new host in Terminus:"
+echo "3. Scan the QR code above, or manually create a new host in Termius:"
 echo "   - Hostname: $TAILSCALE_HOST"
 echo "   - Username: $(whoami)"
 echo "   - Authentication: Default settings"
-echo "4. Connect and run: sesh"
+echo "4. Connect and run: sesh new"
 echo "5. Run 'unlock' if you need git or keychain access"
 echo ""
 echo "Shell functions:"
-echo "  sesh                      # Smart: detects sessions, prompts when needed, resumes in tmux"
-echo "  seshmyproject ~/code      # Create/attach 'myproject' session at ~/code"
-echo "  sesh-s work -p ~/app      # Using named parameters"
+echo "  sesh new                  # Interactive session wizard"
+echo "  sesh myproject ~/code     # Create/attach 'myproject' session at ~/code"
+echo "  sesh -s work -p ~/app     # Using named parameters"
+echo "  sesh list                 # Pick from existing sessions"
 echo "  unlock                   # Unlock macOS keychain over SSH"
 echo ""
 echo "To start using these commands:"

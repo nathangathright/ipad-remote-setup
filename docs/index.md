@@ -1,15 +1,15 @@
 ---
 layout: default
-title: Remote Coding from Coffee Shops - iPad Mini + Claude Code Setup
+title: Remote Coding from Coffee Shops - iPad Mini + Agentic Coding Setup
 ---
 
-I wanted to code from coffee shops without lugging a laptop. So I built a mobile workstation: an iPad Mini that connects to my Mac Studio at home running Claude Code. All the computing power stays home. I just carry the display, keyboard, and mouse.
+I wanted to code from coffee shops without lugging a laptop. So I built a mobile workstation: an iPad Mini that connects to my Mac Studio at home running AI coding agents. All the computing power stays home. I just carry the display, keyboard, and mouse.
 
 This is my setup. There are many[^1] like[^2] it[^3], but this one is mine.
 
 ## The Shopping List
 
-- **[Mac Studio](https://www.amazon.com/dp/B0FNS1ZX5B?tag=nathangathright-20)** - The always-on powerhouse at home running Claude Code. Any Mac works, but desktop machines handle the "always available" role best.
+- **[Mac Studio](https://www.amazon.com/dp/B0FNS1ZX5B?tag=nathangathright-20)** - The always-on powerhouse at home running AI coding agents. Any Mac works, but desktop machines handle the "always available" role best.
 - **[iPad Mini](https://www.amazon.com/dp/B0DKL4DTYN?tag=nathangathright-20)** - Any recent model works. The smaller size makes it perfect for portability.
 - **[TwelveSouth HoverBar Duo](https://www.amazon.com/dp/B0B6QD3NZV?tag=nathangathright-20)** - Adjustable iPad stand that works great for standing height ergonomics.
 - **[Apple Magic Keyboard](https://www.amazon.com/dp/B0DL6LV7Q6?tag=nathangathright-20)** - Compact, Bluetooth, and has great key travel. The rechargeable battery lasts weeks.
@@ -28,10 +28,10 @@ curl -fsSL https://raw.githubusercontent.com/nathangathright/ipad-remote-setup/m
 
 This installs Tailscale and tmux, configures everything for remote access, and displays a QR code for easy iPad setup. It also adds powerful shell helpers:
 
-- **[`sesh`](https://github.com/nathangathright/sesh)** - The only command you need! Context-aware session manager (resumes in tmux, auto-attaches to single session, shows menu for multiple, prompts for new)
+- **[`sesh`](https://github.com/nathangathright/sesh)** - Tmux session manager for creating, attaching, and listing AI coding agent sessions
 - **`unlock`** - Unlocks the macOS keychain (locked by default over SSH)
 
-The script also installs a **Claude Code skill** that teaches it how to properly preview web projects over Tailscale for any framework—so Claude always knows to bind servers to `0.0.0.0` instead of localhost.
+The script also installs a skill that teaches AI coding agents how to properly preview web projects over Tailscale for any framework.
 
 Tailscale encrypts all traffic end-to-end and your Mac is only accessible to devices on your private network—no ports exposed to the internet.
 
@@ -41,56 +41,41 @@ If you prefer to set things up manually, see the [README](https://github.com/nat
 
 Install these apps from the App Store:
 - [Tailscale](https://apps.apple.com/us/app/tailscale/id1470499037) - Sign in with the same account you used on your Mac
-- [Terminus](https://apps.apple.com/us/app/termius-ssh-client/id549039908) - The SSH client you'll use to connect
+- [Termius](https://apps.apple.com/us/app/termius-ssh-client/id549039908) - The SSH client you'll use to connect
 - [Wispr Flow](https://apps.apple.com/app/id6497229487) - For voice input (optional)
 
-Then scan the QR code displayed by the setup script from your iPad's camera. This opens Terminus with your connection pre-filled.
+Then scan the QR code displayed by the setup script from your iPad's camera. This opens Termius with your connection pre-filled.
 
-If the QR code doesn't work, manually create a new host in Terminus using the hostname and username shown by the script.
+If the QR code doesn't work, manually create a new host in Termius using the hostname and username shown by the script.
 
 ## Your Daily Workflow
 
 Here's my typical coffee shop session:
 
 1. **Arrive and set up** - Takes about 2 minutes to assemble everything
-2. **Open Terminus** and connect to Mac Studio via Tailscale
+2. **Open Termius** and connect to Mac Studio via Tailscale
 3. **Unlock the keychain** if you need git or code signing:
    ```bash
    unlock
    ```
-4. **Start coding - just type `sesh`:**
+4. **Start coding with `sesh`:**
    ```bash
-   # The sesh command does the right thing based on context:
+   # Interactive wizard (name + project path)
+   sesh new
 
-   # Inside tmux? Resumes Claude Code
-   sesh
-
-   # No sessions? Prompts for name and path (smart defaults)
-   sesh
-   # 📝 Session name [myapp]: ↵
-   # 📂 Project path [/Users/you/myapp]: ↵
-
-   # One session? Auto-attaches
-   sesh
-
-   # Multiple sessions? Interactive menu (arrow keys + enter)
-   sesh
-   # 📋 Select a session:
-   #  > work
-   #    side-project
-   #    claude
-   # [↑/↓: navigate | enter: select | q: cancel]
-
-   # Or be explicit
+   # Create/attach directly
    sesh myproject ~/code
    sesh -s work -p ~/app
+
+   # Pick from existing sessions
+   sesh list
    ```
-5. **Code away** - Claude Code launches automatically. The `sesh` function handles everything: session management, directory navigation, and starting Claude Code.
-6. **Use voice input** - Tap to activate Wispr Flow and speak prompts to Claude
+5. **Code away** - Your chosen coding agent launches automatically in the tmux session you created/attached.
+6. **Use voice input** - Tap to activate Wispr Flow and speak prompts to your coding agent
 7. **Detach when leaving:**
    ```bash
    # Press Ctrl+B, then D to detach
-   # Or just close Terminus - tmux keeps running
+   # Or just close Termius - tmux keeps running
    ```
 
 Everything stays running at home, so you can pick up where you left off from any location. You can have multiple named sessions for different projects.
@@ -99,7 +84,7 @@ Everything stays running at home, so you can pick up where you left off from any
 
 Since your iPad and Mac are on the same Tailscale network, any dev server running on your Mac is already accessible from your iPad. Just visit `http://<tailscale-hostname>:<port>` in Safari. Make sure your dev server binds to `0.0.0.0` instead of `localhost` (most frameworks have a `--host` flag for this).
 
-The setup script installs a Claude Code skill that knows the correct preview commands for every major framework. Just ask Claude to "preview this project over Tailscale" and it will handle the rest!
+The setup script installs a skill that knows the correct preview commands for every major framework. Just ask your coding agent to "preview this project over Tailscale" and it will handle the rest!
 
 **Manual reference**: See [CLAUDE.md](https://github.com/nathangathright/ipad-remote-setup/blob/main/CLAUDE.md) for detailed framework-specific commands (Vite, Next.js, Cloudflare Workers, etc.) and troubleshooting tips.
 

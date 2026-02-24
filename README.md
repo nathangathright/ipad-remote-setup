@@ -1,4 +1,4 @@
-# Remote Coding from Coffee Shops: iPad Mini + Claude Code Setup
+# Remote Coding from Coffee Shops: iPad Mini + Agentic Coding Setup
 
 Automated setup script for remote coding from an iPad using Tailscale SSH and tmux.
 
@@ -12,18 +12,18 @@ On your Mac (the one you want to access remotely):
 curl -fsSL https://raw.githubusercontent.com/nathangathright/ipad-remote-setup/main/setup.sh | bash
 ```
 
-On your iPad, install [Tailscale](https://apps.apple.com/us/app/tailscale/id1470499037) and [Terminus](https://apps.apple.com/us/app/termius-ssh-client/id549039908), then scan the QR code displayed by the script.
+On your iPad, install [Tailscale](https://apps.apple.com/us/app/tailscale/id1470499037) and [Termius](https://apps.apple.com/us/app/termius-ssh-client/id549039908), then scan the QR code displayed by the script.
 
-Connect and run `sesh` to start coding.
+Connect and run `sesh new` (or `sesh <name> [path]`) to start coding.
 
 ## What the Script Does
 
 - Installs Tailscale (CLI version) with SSH support
 - Installs tmux for persistent sessions with smooth scrolling
-- Creates a smart `sesh` function - the only command you need for Claude Code sessions
+- Installs `sesh`, a tmux session manager for AI coding agent sessions
 - Creates an `unlock` function to unlock the macOS keychain over SSH
-- Installs the [tailserve](https://github.com/nathangathright/tailserve) skill that teaches Claude Code how to preview web projects over Tailscale
-- Displays a QR code to configure Terminus on your iPad
+- Installs the [tailserve](https://github.com/nathangathright/tailserve) skill that teaches AI coding agents how to preview web projects over Tailscale
+- Displays a QR code to configure Termius on your iPad
 
 ## Manual Setup
 
@@ -67,9 +67,9 @@ EOF
 source ~/.zshrc
 ```
 
-### 3. sesh (The Only Command You Need)
+### 3. sesh (Session Manager)
 
-Install [sesh](https://github.com/nathangathright/sesh), a smart tmux session manager for Claude Code:
+Install [sesh](https://github.com/nathangathright/sesh), a tmux session manager for AI coding agents:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/nathangathright/sesh/main/install.sh | bash
@@ -77,6 +77,14 @@ source ~/.zshrc
 ```
 
 See the [sesh repo](https://github.com/nathangathright/sesh) for full usage details.
+
+Common commands:
+
+```bash
+sesh new                  # Interactive session wizard
+sesh myproject ~/code     # Create/attach session
+sesh -s work -p ~/app     # Same using flags
+```
 
 ### 4. Keychain Unlock
 
@@ -99,11 +107,11 @@ Run `unlock` after connecting to enter your password and restore keychain access
 
 ### 5. iPad
 
-Install Tailscale (same account) and Terminus. Create a host using your Mac's Tailscale hostname and username.
+Install Tailscale (same account) and Termius. Create a host using your Mac's Tailscale hostname and username.
 
 ## Previewing Web Projects
 
-Since your iPad and Mac are on the same Tailscale network, any dev server running on your Mac is already accessible from your iPad. The setup script installs the [tailserve](https://github.com/nathangathright/tailserve) skill that teaches Claude Code the correct commands for every framework (Vite, Next.js, Wrangler, etc.). Just ask Claude to "preview this project over Tailscale" and it will know what to do.
+Since your iPad and Mac are on the same Tailscale network, any dev server running on your Mac is already accessible from your iPad. The setup script installs the [tailserve](https://github.com/nathangathright/tailserve) skill that teaches AI coding agents the correct commands for every framework (Vite, Next.js, Wrangler, etc.). Just ask your coding agent to "preview this project over Tailscale" and it will know what to do.
 
 tailserve covers three approaches:
 - **Direct tailnet access** — bind to `0.0.0.0`, access via `http://<hostname>:<port>`

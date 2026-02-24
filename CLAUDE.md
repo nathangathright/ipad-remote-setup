@@ -1,4 +1,4 @@
-# Claude Code Instructions
+# Agentic Coding Instructions
 
 ## Web Project Previewing over Tailscale
 
